@@ -1,0 +1,40 @@
+{% extends "public_index.html" %}
+{% load i18n %}
+{% load images %}
+
+{% block content_right %}
+    <div class="content_box">
+        &nbsp;
+    </div>
+{% endblock %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+    <br/>
+    {% block error_msg %}{% endblock %}
+    <div id="div_buttons">
+        <div class="content_box">
+            <h2>Desculpe-nos, mas ...</h2>
+        </div>
+
+        <div style="font-size:20px;margin:15px 0px 10px 140px;">
+            <p style="font-size:24px;margin:0 0 10px 0;">Estamos em manutenção !</p>
+            <p style="font-size:18px;margin:0 0 10px 0;">Estamos importando as definições de disciplinas, professores e alunos para o período 2011.2, muito em
+               breve estaremos de volta.</p>
+            <br/>
+            <p style="font-size:18px;margin:0 0 10px 0;"><i>Agradecemos a compreensão</i></p>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block page_end %}
+{% endblock %}
+
+{% block extra-head %}
+{% endblock %}
+
+{% block jquery %}
+{% endblock %}

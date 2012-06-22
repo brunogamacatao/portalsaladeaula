@@ -1,0 +1,27 @@
+#horario_table {
+    width: 775px;
+}
+
+#horario_table {
+    margin: 5px 0 10px 0;
+    border: 2px solid #AAA;
+    border-collapse: collapse;
+}
+
+#horario_table th, #horario_table td {
+    border: 1px solid #AAA;
+    text-align: center;
+}
+
+#horario_table .filled {
+    font-size: 10px;
+    background-color: #DDD;
+}
+
+#tooltip {
+    font-size:12px;
+    padding: 5px 10px;
+    background: #cad7e0;
+    border: 1px solid #b2bdc3;
+    opacity: 0.90;
+}

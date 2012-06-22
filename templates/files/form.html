@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load filetransfers %}
+{% load media %}
+
+{% block extra-head %}
+    {{ block.super }}
+    {{ form.media }}
+{% endblock %}
+
+{% block css %}
+    {% include_media 'form.css' %}
+{% endblock %}
+
+{% block preload_js %}
+    {% include_media 'form.js' %}
+{% endblock %}
+
+{% block content %}
+    <form id="my_form_id" action="{{ upload_url }}" method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      
+      <table>
+          {{ form }}
+          <tr>
+              <th>&nbsp;</th>
+              <td><input type="submit" value="{% trans "Upload"%}"/></td>
+          </tr>
+      </table>
+    </form>
+    <div id="dialog-modal" title="Enviando seu arquivo ...">
+	    <h1 style="text-align:center;">Por favor aguarde ...</h1>
+        <span style="position: relative; left: 50%; margin-left: -24px;"><img src="{% media_url 'images/please_wait.gif' %}"/></span>
+    </div>
+{% endblock %}
+
+{% block jquery %}
+    {{ block.super }}
+
+    {% for field in form %}
+        {% if field.field.required %}
+            $('#id_{{ field.name }}').addClass('validate[required]');
+        {% endif %}
+    {% endfor %}
+    $("#my_form_id").validationEngine();
+
+    $('#dialog-modal').dialog({
+        height: 140,
+        modal: true,
+        autoOpen: false
+    });
+
+    $('#my_form_id').submit(function() {
+        if (!$("#my_form_id").validationEngine('validate'))
+            return false;
+
+        //Solving a GAE's encoding bug
+        var desc = $('<div/>').text($('#id_description').val()).html();
+        //C
+        desc = desc.replace('ç', '&ccedil;');
+        desc = desc.replace('Ç', '&Ccedil;');
+        //A
+        desc = desc.replace('á', '&aacute;');
+        desc = desc.replace('Á', '&Aacute;');
+        desc = desc.replace('à', '&agrave;');
+        desc = desc.replace('À', '&Agrave;');
+        desc = desc.replace('â', '&acirc;');
+        desc = desc.replace('Â', '&Acirc;');
+        desc = desc.replace('ã', '&atilde;');
+        desc = desc.replace('Ã', '&Atilde;');
+        desc = desc.replace('ä', '&auml;');
+        desc = desc.replace('Ä', '&Auml;');
+        //E
+        desc = desc.replace('é', '&eacute;');
+        desc = desc.replace('É', '&Eacute;');
+        desc = desc.replace('ê', '&ecirc;');
+        desc = desc.replace('Ê', '&Ecirc;');
+        desc = desc.replace('ë', '&euml;');
+        desc = desc.replace('É', '&Euml;');
+        //I
+        desc = desc.replace('í', '&iacute;');
+        desc = desc.replace('Í', '&Iacute;');
+        desc = desc.replace('ï', '&iuml;');
+        desc = desc.replace('Ï', '&Iuml;');
+        //O
+        desc = desc.replace('ó', '&oacute;');
+        desc = desc.replace('Ó', '&Oacute;');
+        desc = desc.replace('ô', '&ocirc;');
+        desc = desc.replace('Ô', '&Ocirc;');
+        desc = desc.replace('õ', '&otilde;');
+        desc = desc.replace('Õ', '&Otilde;');
+        desc = desc.replace('ö', '&ouml;');
+        desc = desc.replace('Ö', '&Ouml;');
+        //U
+        desc = desc.replace('ú', '&uacute;');
+        desc = desc.replace('Ú', '&Uacute;');
+        desc = desc.replace('ü', '&uuml;');
+        desc = desc.replace('Ü', '&Auml;');
+        //N
+        desc = desc.replace('ã', '&ntilde;');
+        desc = desc.replace('Ã', '&Ntilde;');
+
+        $('#id_description').val(desc);
+        $('#dialog-modal').dialog('open');
+        return true;
+    });
+{% endblock %}

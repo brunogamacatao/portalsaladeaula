@@ -1,0 +1,62 @@
+{% extends "public_index.html" %}
+{% block error_msg %}
+    <h2 style="color:red;margin:0 0 0 5px;font-weight:normal;font-size:14px;">E-mail e/ou senha incorretos, por favor, tente novamente.</h2>
+{% endblock %}
+{% block content_right %}
+{% endblock %}
+{% block content %}
+    {{ block.super }}
+    <div style="text-align:center;">
+        <h2>ou</h2>
+        <br/>
+        <button id="btn_rmb_show">Esqueci a Minha Senha</button>
+    </div>
+    <br/>    
+{% endblock %}
+
+{% block page_end %}
+    {{ block.super }}
+
+    <div style="display:none" id="rmb_dialog_modal" title="Esqueci a minha senha">
+        <table>
+            <tbody>
+                <tr>
+                    <th><label>Qual o seu e-mail ?</label></th>
+                    <td><form id="reset_email_form" action="{% url portal.accounts.views.reset_email %}" method="POST">
+                        {% csrf_token %}
+                        <input id="id_rmb_emai" class="validate[required,custom[email]] text-input" type="text" name="email" maxlength="50" />
+                    </form></td>
+                </tr>
+                <tr>
+                    <th></th>
+                    <td><input type="button" id="btn_rmb" class="sexybutton sexysimple sexyorange" value="Enviar"/></td>
+                </tr>
+            </tbody>
+        </table>
+        <p style="color:#999;"><i>Você receberá uma nova senha no e-mail informado.</i></p>
+    </div>
+{% endblock %}
+
+{% block jquery %}
+    {{ block.super }}
+    $('#btn_rmb_show').click(function(){
+        $('#rmb_dialog_modal').dialog({
+            height: 150,
+            width: 300,
+            modal: true
+        });
+    });
+
+    $('#btn_rmb').click(function(){
+        $('#reset_email_form').submit();
+    });
+
+    $('#reset_email_form').submit(function(event) {
+        if ($("#reset_email_form").validationEngine('validate')) {
+            return true;
+        }
+
+        event.preventDefault();
+        return false;
+    });
+{% endblock %}

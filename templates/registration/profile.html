@@ -1,0 +1,448 @@
+{% extends 'home.html' %}
+{% load i18n %}
+{% load images %}
+{% load updates %}
+{% load messages %}
+{% load filetransfers %}
+{% load security %}
+{% load media %}
+
+{% block css %}
+    {% include_media 'registration_profile.css' %}
+{% endblock %}
+{% block preload_js %}
+    {% include_media 'registration_profile.js' %}
+{% endblock %}
+
+{% block extra-head %}
+    {{ block.super }}
+    <script type="text/javascript">
+        var disciplinasSelecionadas = [];
+    </script>
+{% endblock %}
+
+{% block jquery %}
+    {{ block.super }}
+    $('.filled').hoverbox();
+    {% if user.is_authenticated %}
+    $('#send_attachment_form').ajaxForm({
+        success: function(responseText, statusText, xhr, $form) {
+            var result = eval(responseText)['result'];
+            $('#field_attachment_id').val(result['id']);
+            $('#id_file').val('');
+            $('#send_msg_form').submit();
+        },
+        dataType: "json",
+        timeout:   60000
+    });
+    $('#post_msg_btn').click(function(){
+        $('#send_msg_form').submit();
+    });
+    $('#send_msg_form').submit(function(){
+        if ($('#send_msg_dlg').validationEngine('validate')) {
+            $('#msg-dialog-modal').dialog({
+                height: 140,
+                modal: true,
+                autoOpen: true,
+                zIndex: 3000,
+                closeOnEscape: false,
+                open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); }
+            });
+
+            if ($('#id_file').val() != null && $('#id_file').val() != '') {
+                $('#send_attachment_form').submit();
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
+    });
+
+    {% ifequal user user_obj %}
+        $('#link_add_disciplina').click(function(event){
+            $('#add_disciplina_dlg').dialog({
+                width: 300,
+                height: 300,
+                modal: true,
+                autoOpen: true
+            });
+
+            event.preventDefault();
+            return false;
+        });
+
+        $('#btn_adicionar_disciplina').click(function() {
+            $('#dialog-modal').dialog('open');
+            dados = $.param({"codigo": $('#id_cod_disciplina').val(), "senha": $('#id_senha_disciplina').val()});
+            $.ajax({
+                type: "POST",
+                url: "{% url portal.disciplines.views.get_discipline %}",
+                dataType: "json",
+                data: dados,
+                success: function(dados) {
+                    if (dados.status == 'ok') {
+                        $('#div_teacher_error').css('display', 'none');
+                        $('#disciplinas_div').css('display', '');
+
+                        var contem = false;
+
+                        for (var i = 0; i < disciplinasSelecionadas.length; i++) {
+                            if (disciplinasSelecionadas[i] == dados.id) {
+                                contem = true;
+                                break;
+                            }
+                        }
+
+                        if (contem) {
+                            alert('Você já selecionou esta disciplina !');
+                        } else {
+                            var html = '<tr><td>' + dados.imagem + '</td><td>' + dados.nome +'</td></tr>';
+                            disciplinasSelecionadas[disciplinasSelecionadas.length] = dados.id;
+                            $('#disciplinas_tbl').html($('#disciplinas_tbl').html() + html);
+                        }
+
+                        $('#id_cod_disciplina').val('');
+                        $('#id_senha_disciplina').val('');
+                    } else {
+                        $('#div_teacher_error').html(dados.mensagem);
+                        $('#div_teacher_error').css('display', '');
+                    }
+
+                    $('#dialog-modal').dialog('close');
+                },
+                error: function(request, data) {
+                    $('#div_teacher_error').css('display', '');
+                    $('#dialog-modal').dialog('close');
+                }
+            });
+        });
+
+        $('#disciplinas_form').submit(function(event){
+            if (disciplinasSelecionadas.length > 0) {
+                var lista_disciplinas = '';
+                for (var i = 0; i < disciplinasSelecionadas.length; i++) {
+                    if (i > 0) lista_disciplinas += ',';
+                    lista_disciplinas += disciplinasSelecionadas[i];
+                }
+                $('#id_lista_disciplinas').val(lista_disciplinas);
+
+                return true;
+            } else {
+                alert('Você deve informar pelo menos uma disciplina que você leciona');
+            }
+
+            event.preventDefault();
+            return false;
+        });
+    {% endifequal %}
+
+    {% ifnotequal user.id user_obj.id %}
+    $('#send_msg_dlg').dialog({
+        width: 450,
+        height: 300,
+        modal: true,
+        resizable: false,
+        autoOpen: false
+    });
+    $('#send_msg_dlg').validationEngine();
+    $('#send_msg_btn').click(function(){
+        $('#send_msg_dlg').dialog('open');
+    });
+    {% endifnotequal %}
+    {% endif %}
+
+    {% if request.session.site_interno %}
+    if ($('#horario_table')) {
+        $('#horario_table').css('width', '740px');
+    }
+    {% endif %}
+{% endblock %}
+
+{% block options %}
+    <div id="image_wrapper_div">
+        {% if user_obj.get_profile.picture %}
+            <img id="profile_picture_img" src="{{ user_obj.get_profile.picture|thumbnail:"180x180" }}"/>
+        {% else %}
+            <img id="profile_picture_img" src="{% media_url 'images/genericFace.gif' %}" width="180" height="180"/>
+        {% endif %}
+        {% if user.is_authenticated %}
+        {% ifequal user user_obj %}
+        <div id="change_image_div" class="alpha60">
+            <a href="#"><h1>Mudar a Imagem</h1></a>
+        </div>
+        {% endifequal %}
+        {% endif %}
+    </div>
+    <br/>
+    <h1>{{ user_obj.get_profile.name }}</h1>
+
+    {% if user.is_authenticated %}
+    {% ifequal user user_obj %}
+    {% if user_obj.get_profile.is_teacher %}
+    <br/>
+    {% if_is_facisa %}
+    <ul>
+        <li><img src="{% media_url 'images/icons/wrench_orange.png' %}"/> <span><b>Opções de Administração</b></span>
+            <ul style="margin-left:20px">
+                <a href="#" onclick="return false;"><li class="lmenu_option" id="link_add_disciplina"><img src="{% media_url 'images/icons/add.png' %}"/> <span>Adicionar Disciplina</span></li></a>
+            </ul>
+        </li>    
+    </ul>
+    {% endif_is_facisa %}
+    {% endif %}
+    {% endifequal %}
+    {% endif %}
+
+    {% if user_obj.get_profile.is_teacher %}
+        {% if user_obj.get_profile.get_courses_teaches %}
+        <div class="content_box">
+            <h2>Curso</h2>
+            {% for course in user_obj.get_profile.get_courses_teaches %}
+                <p><a href="{% url portal.courses.views.detail course.institution.slug course.slug %}">
+                    {% if course.picture %}
+                    <img src="{{ course.picture|thumbnail:"50x50" }}"/>
+                    {% else %}
+                    <img src="{% media_url 'images/genericFace_thumb.gif' %}"/>
+                    {% endif %}
+                    <span>
+                        {{ course.name }}
+                    </span>
+                </a></p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if user_obj.get_profile.get_institutions_teaches %}
+        <div class="content_box">
+            <h2>Instituição</h2>
+            {% for institution in user_obj.get_profile.get_institutions_teaches %}
+                <p><a href="{% url portal.institutions.views.detail institution.slug %}">
+                    {% if institution.picture %}
+                    <img src="{{ institution.picture|thumbnail:"50x50" }}"/>
+                    {% else %}
+                    <img src="{% media_url 'images/genericFace_thumb.gif' %}"/>
+                    {% endif %}
+                    <span>
+                        {{ institution.name }}
+                    </span>
+                </a>
+                </p>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% else %}
+        {% if user_obj.get_profile.get_courses_studies %}
+        <div class="content_box">
+            <h2>Curso</h2>
+            {% for course in user_obj.get_profile.get_courses_studies %}
+                <p><a href="{% url portal.courses.views.detail course.institution.slug course.slug %}">
+                    {% if course.picture %}
+                    <img src="{{ course.picture|thumbnail:"50x50" }}"/>
+                    {% else %}
+                    <img src="{% media_url 'images/genericFace_thumb.gif' %}"/>
+                    {% endif %}
+                    <span>{{ course.name }}</span>
+                </a></p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if user_obj.get_profile.get_institutions_studies %}
+        <div class="content_box">
+            <h2>Instituição</h2>
+            {% for institution in user_obj.get_profile.get_institutions_studies %}
+                <p><a href="{% url portal.institutions.views.detail institution.slug %}">
+                    {% if institution.picture %}
+                    <img src="{{ institution.picture|thumbnail:"50x50" }}"/>
+                    {% else %}
+                    <img src="{% media_url 'images/genericFace_thumb.gif' %}"/>
+                    {% endif %}
+                    <span>{{ institution.name }}</span>
+                </a></p>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if user.is_authenticated %}
+        {% ifnotequal user.id user_obj.id %}
+            <div class="message_buttons">
+                <button id="send_msg_btn"><img src="{% media_url 'images/icons/email.png' %}"/> Enviar mensagem</button>
+            </div>
+        {% endifnotequal %}
+    {% endif %}
+
+    <br/>
+    <h1 style="margin-left:5px">{{ user_obj.get_profile.name }}</h1>
+    {% if user_obj.get_profile.city %}
+    <p style="margin-left:5px">Mora em {{ user_obj.get_profile.city }}, {{ user_obj.get_profile.get_province_display }}</p>
+    {% endif %}
+    <br/>
+
+    {% if user.is_authenticated %}
+    {% ifequal user.id user_obj.id %}
+    {% endifequal %}
+        <style type="text/css">
+            #welcome #welcome_img {
+                float: left;
+            }
+
+            #welcome #welcome_text {
+                float: left;
+                margin: 10px 0 0 10px;
+            }
+
+            #welcome .welcome_title {
+                margin: 5px 0 2px -10px;
+                font-weight: bold;
+            }
+
+            #welcome .detail_text {
+                margin: -20px 0 0 0;
+            }
+
+            #welcome li {
+                background-image: url("{% media_url 'images/icons/star.png' %}");
+                background-repeat: no-repeat;
+                background-position: 0 0px;
+                padding-left: 17px;
+                line-height: 18px;
+            }
+        </style>
+        {% if user.is_teacher %}
+        <div id="welcome" class="content_box">
+            <h2>Bem-Vindo Professor !</h2>
+            <img id="welcome_img" src="{% media_url 'images/school_board.png' %}" width="128px" height="128px"/>
+            <div id="welcome_text">
+                <h3>Que bom ter você conosco !</h3>
+                <p class="welcome_title">No Portal Sala de Aula você pode:</p>
+                <ul>
+                    <li>&nbsp;<b>mudar a sua foto</b> clicando na imagem exibida à esquerda;</li>
+                    <li>&nbsp;<b>consultar o seu horário</b> logo abaixo;</li>
+                    <li>&nbsp;clique nas disciplinas abaixo, lá você poderá <b>adicionar materiais didáticos</b> e <b>enviar mensagens</b>;</li>
+                </ul>
+            </div>
+            <div style="clear:both">&nbsp;</div>
+        </div>
+        {% endif %}
+    {% endif %}
+
+    {% if horario %}
+    <div class="content_box">
+        {% autoescape off %}
+        {{ horario }}
+        {% endautoescape %}
+    </div>
+    {% endif %}
+
+    {% if user.is_authenticated %}
+    {% ifequal user.id user_obj.id %}
+        {% get_message_count for profile as message_count %}
+        {% if message_count > 0 %}
+        <div class="content_box">
+            <h2>Últimas Mensagens</h2>
+            {% render_message_list for profile %}
+        </div>
+        {% endif %}
+
+        {% get_reply_count as reply_count %}
+        {% if reply_count > 0 %}
+        <div class="content_box">
+            <h2>Respostas às suas Mensagens</h2>
+            {% render_reply_list %}
+        </div>
+        {% endif %}
+
+        {% get_update_count for profile as update_count %}
+        {% if update_count > 0 %}
+        <div class="content_box">
+            {% render_update_list for profile %}
+        </div>
+        {% endif %}
+    {% endifequal %}
+    {% endif %}
+{% endblock %}
+
+{% block page_end %}
+    {{ block.super }}
+    {% if user.is_authenticated %}
+    {% ifnotequal user.id user_obj.id %}
+        <div id="send_msg_dlg" title="Nova mensagem">
+            <table>
+                <tbody>
+                    <form id="send_msg_form" action="{% url portal.messages.views.post_message %}" method="POST">
+                        {% csrf_token %}
+                        {{ msg_form }}
+                        <input type="hidden" id="field_attachment_id" name="attachment_id"/>
+                    </form>
+                    <tr id="attachment_list_row" style="display:none;">
+                        <th><label>Attachments</label></th>
+                        <td id="attachment_list_col">
+                        </td>
+                    </tr>
+                    <form id="send_attachment_form" onsubmit="return false;" action="{{ upload_url }}" method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {% render_upload_data upload_data %}
+                        {{ attach_form }}
+                    </form>
+                    <tr>
+                        <th>&nbsp;</th>
+                        <td class="button_row" id="post_msg_btn">
+                            <input type="submit" class="sexybutton sexysimple sexyorange" value="Enviar"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="msg-dialog-modal" title="Enviando a mensagem ...">
+            <h1 style="text-align:center;">Por favor aguarde ...</h1>
+            <span style="position: relative; left: 50%; margin-left: -24px;"><img src="{% media_url 'images/please_wait.gif' %}"/></span>
+        </div>
+    {% endifnotequal %}
+    {% ifequal user.id user_obj.id %}
+        <div id="view_msg_dlg" style="display:none">
+            <p style="text-align:center;"><img src="{% media_url 'images/please_wait.gif' %}"/></p>
+            <h1 style="text-align:center;">Carregando a sua mensagem ...</h1>
+            <h2 style="text-align:center;">Por favor aguarde</h2>
+        </div>
+
+        <div id="add_disciplina_dlg" style="display:none;" title="Que disciplinas você leciona ?">
+            <h3 id="div_teacher_error" style="color:#F00;font-weight:normal;margin: 10px 0 0 50px;display:none;">Não foi possível localizar uma disciplina com os dados informados</h3>
+            <table style="width:100%">
+                <tbody>
+                    <tr>
+                        <th><label for="id_cod_disciplina">Cod. Disciplina:</label></th>
+                        <td><input id="id_cod_disciplina" type="text" name="nome" maxlength="50" /></td>
+                    </tr>
+                    <tr>
+                        <th><label for="id_senha_disciplina">Senha Disciplina:</label></th>
+                        <td><input id="id_senha_disciplina" type="text" name="nome" maxlength="50" /></td>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <td><input type="button" id="btn_adicionar_disciplina" class="sexybutton sexysimple sexyorange" value="Adicionar"/></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div id="disciplinas_div" class="content_box" style="display:none;">
+                <h2>Disciplinas Selecionadas</h2>
+                <table>
+                    <tbody id="disciplinas_tbl">
+                    </tbody>
+                </table>
+                <br/>
+                <form id="disciplinas_form" action="{% url portal.accounts.views.add_disciplines %}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" id="id_lista_disciplinas" name="disciplinas"/>
+                    <input type="submit" id="btn_professor_2" class="sexybutton sexysimple sexyorange" style="float:right;margin-right:2px;" value="Concluir"/>
+                </form>
+                <div class="clear">&nbsp;</div>
+            </div>
+        </div>
+    {% endifequal %}
+    {% endif %}
+{% endblock %}

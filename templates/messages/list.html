@@ -1,0 +1,76 @@
+{% load images %}
+{% load text %}
+{% load media %}
+
+<style type="text/css">
+    .message_list table {
+        margin: 5px;
+        border-collapse: collapse;
+        width: 765px;
+    }
+
+    .message_list tr {
+        height: 20px;
+    }
+
+    .message_list .date_col {
+        color: #CCC;
+    }
+
+    .message_list tbody tr:hover {
+        background-color: #CCC;
+    }
+
+    .message_list tbody tr:hover td a, .message_list tr:hover .date_col {
+        color: white;
+    }
+</style>
+
+<div id="messages_div" class="message_list">
+    <table>
+        <tbody>
+        {% for message in message_list|slice:":4" %}
+            <tr>
+                <td style="width:10px">
+                    <a href="#" onclick="$('#view_msg_{{ message.id }}').click()">
+                    <img src="{% media_url 'images/icons/email.png' %}" width="16px" height="16px"/>
+                    </a>
+                </td>
+                <td style="">
+                    <a id="view_msg_{{ message.id }}" href="#">
+                    {% if message.attachment_set.all %}
+                        <img style="border:0" width="9px" height="17px" src="{% media_url 'images/icons/attachment_icon.gif' %}"/>
+                    {% endif %}
+                    {{ message.subject|escape|safe }}
+                    </a>
+                    <script type="text/javascript">
+                        $('#view_msg_{{ message.id }}').click(function(){
+                            var content = '<p style="text-align:center;"><img src="{% media_url 'images/please_wait.gif' %}"/></p>';
+                            content += '<h1 style="text-align:center;">Carregando a sua mensagem ...</h1>';
+                            content += '<h2 style="text-align:center;">Por favor aguarde</h2>';
+
+                            $('#view_msg_dlg').html(content);
+                            $('#view_msg_dlg').dialog({
+                                width: 800,
+                                height: 500,
+                                modal: true,
+                                resizable: false,
+                                title: '{{ message.subject }}'
+                            });
+                            $('#view_msg_dlg').load('{% url portal.messages.views.get_message message.id %}');
+                        });
+                    </script>
+                </td>
+                <td class="date_col" style="text-align:right;">{{ message.date_published|format_date }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+        <tfoot>
+        {% if message_count > 4 %}
+            <tr>
+                <td colspan="3" style="text-align:right;"><a href="#">Ver mais ...</a></td>
+            </tr>
+        {% endif %}
+        </tfoot>
+    </table>
+</div>

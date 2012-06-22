@@ -1,0 +1,15 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+    <form action="" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label for="course_id">Slug do Curso</label><input type="text" id="course_id" name="course_slug"/>
+        <input type="file" name="disciplinas"/>
+        <input type="submit" value="Enviar"/>
+    </form>
+</body>
+</html>

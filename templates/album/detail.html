@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load images %}
+{% load comments %}
+{% load media %}
+
+{% block css %}
+    {% include_media 'album_detail.css' %}
+{% endblock %}
+
+{% block preload_js %}
+    {% include_media 'album_detail.js' %}
+{% endblock %}
+
+{% block jquery %}
+    {{ block.super }}
+
+    // We only want these styles applied when javascript is enabled
+    $('div.navigation').css({'width' : '200px', 'float' : 'left'});
+    $('div.content').css('display', 'block');
+
+    // Initially set opacity on thumbs and add
+    // additional styling for hover effect on thumbs
+    var onMouseOutOpacity = 0.67;
+    $('#thumbs ul.thumbs li').opacityrollover({
+        mouseOutOpacity:   onMouseOutOpacity,
+        mouseOverOpacity:  1.0,
+        fadeSpeed:         'fast',
+        exemptionSelector: '.selected'
+    });
+
+    // Initialize Advanced Galleriffic Gallery
+    var gallery = $('#thumbs').galleriffic({
+        delay:                     2500,
+        numThumbs:                 12,
+        preloadAhead:              10,
+        enableTopPager:            true,
+        enableBottomPager:         true,
+        maxPagesToShow:            7,
+        imageContainerSel:         '#slideshow',
+        controlsContainerSel:      '#controls',
+        captionContainerSel:       '#caption',
+        loadingContainerSel:       '#loading',
+        renderSSControls:          true,
+        renderNavControls:         true,
+        playLinkText:              'Reproduzir Show de Slides',
+        pauseLinkText:             'Interromper Show de Slides',
+        prevLinkText:              '&lsaquo; Foto Anterior',
+        nextLinkText:              'Próxima Foto &rsaquo;',
+        nextPageLinkText:          'Próximo &rsaquo;',
+        prevPageLinkText:          '&lsaquo; Anterior',
+        enableHistory:             false,
+        autoStart:                 false,
+        syncTransitions:           true,
+        defaultTransitionDuration: 900,
+        onSlideChange:             function(prevIndex, nextIndex) {
+            // 'this' refers to the gallery, which is an extension of $('#thumbs')
+            this.find('ul.thumbs').children()
+                .eq(prevIndex).fadeTo('fast', onMouseOutOpacity).end()
+                .eq(nextIndex).fadeTo('fast', 1.0);
+        },
+        onPageTransitionOut:       function(callback) {
+            this.fadeTo('fast', 0.0, callback);
+        },
+        onPageTransitionIn:        function() {
+            this.fadeTo('fast', 1.0);
+        }
+    });
+{% endblock %}
+
+{% block options %}
+    <br/>
+    <div id="image_wrapper_div">
+        <a href="{{ instance.get_absolute_url }}">
+        {% if instance.picture %}
+            <img id="profile_picture_img" src="{{ instance.picture|thumbnail:"180x180" }}"/>
+        {% else %}
+            <img id="profile_picture_img" src="{% media_url 'images/genericFace.gif' %}" width="180" height="180"/>
+        {% endif %}
+        </a>
+    </div>
+    <a href="{{ instance.get_absolute_url }}"><h1>{{ instance.name }}</h1></a>
+{% endblock %}
+
+
+{% block content %}
+    <div id="page">
+        <div id="container">
+            <h1>{{ album.title }}</h1><i>publicado há {{ album.date_published|timesince }}</i>
+            <br/>
+
+            <!-- Start Advanced Gallery Html Containers -->
+            <div id="gallery" class="content">
+                <div id="controls" class="controls"></div>
+                <div class="slideshow-container">
+                    <div id="loading" class="loader"></div>
+                    <div id="slideshow" class="slideshow"></div>
+                </div>
+                <div id="caption" class="caption-container"></div>
+            </div>
+            <div id="thumbs" class="navigation">
+                <ul class="thumbs noscript">
+                    {% for rpa in album.picture_album_set.all %}
+                    <li>
+                        <a class="thumb" name="leaf" href="{{ rpa.picture|thumbnail:"550x390" }}" title="Title #{{ forloop.counter }}">
+                            <img src="{{ rpa.picture|thumbnail:"90x90" }}" alt="Title #{{ forloop.counter }}" />
+                        </a>
+                        <div class="caption"></div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div style="clear: both;"></div>
+
+            <br/>
+            <a id="add_picture_btn" href="{% url portal.album.views.add_picture instance.get_class_name instance.slug album.id %}" class="sexybutton sexysimple sexyorange">{% trans "Add a picture"%}</a>
+            <br/>
+        </div>
+    </div>
+{% endblock %}

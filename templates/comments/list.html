@@ -1,0 +1,34 @@
+{% load images %}
+{% load text %}
+{% load i18n %}
+{% load media %}
+
+<div id="comments" class="comment_list">
+  {% for comment in comment_list %}
+    <div id="c{{ comment.id }}" class="comment_item">
+        <a href="{% url portal.accounts.views.profile %}">
+        {% if comment.user.get_profile.picture %}
+        <img src="{{ comment.user.get_profile.picture|thumbnail:"50x50" }}"/>
+        {% else %}
+        <img src="{% media_url 'images/genericFace_thumb.gif' %}"/>
+        {% endif %}
+        </a>
+        <div class="comment_data">
+            <p><a href="{% url portal.accounts.views.profile %}">
+                <span class="comment_name">{{ comment.user.get_profile.name }}</span> fez este comentário há {{ comment.submit_date|timesince }}
+            </a></p>
+            <p>
+                <input type="radio" value="1" name="ranking_{{ comment.id }}" class="star" disabled="true" {% ifequal comment.ranking 1 %}checked="true"{% endifequal %}/>
+                <input type="radio" value="2" name="ranking_{{ comment.id }}" class="star" disabled="true" {% ifequal comment.ranking 2 %}checked="true"{% endifequal %}/>
+                <input type="radio" value="3" name="ranking_{{ comment.id }}" class="star" disabled="true" {% ifequal comment.ranking 3 %}checked="true"{% endifequal %}/>
+                <input type="radio" value="4" name="ranking_{{ comment.id }}" class="star" disabled="true" {% ifequal comment.ranking 4 %}checked="true"{% endifequal %}/>
+                <input type="radio" value="5" name="ranking_{{ comment.id }}" class="star" disabled="true" {% ifequal comment.ranking 5 %}checked="true"{% endifequal %}/>
+            </p>
+            <br/>
+            <p>{{ comment.comment|break_text:95|linebreaksbr }}</p>
+        </div>
+        <div style="clear:left;">&nbsp;</div>
+    </div>
+    {% if not forloop.last %}<hr/>{% endif %}
+  {% endfor %}
+</div>

@@ -1,0 +1,19 @@
+#content_left ul li img {
+    border: none;
+}
+
+#content_left ul li {
+    background-color: #FFF;
+    color: #000;
+}
+
+#content_left ul li span {
+    position: relative;
+    top: -3px;
+    left: 3px;
+}
+
+#content_left .lmenu_option:hover {
+    background-color: #9ecca2;
+    color: #FFF;
+}

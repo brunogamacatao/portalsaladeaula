@@ -1,0 +1,431 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load images %}
+{% load comments %}
+{% load security %}
+{% load text %}
+{% load filetransfers %}
+{% load updates %}
+{% load messages %}
+{% load media %}
+
+{% block css %}
+    {% include_media 'internal_detail.css' %}
+{% endblock %}
+
+{% block preload_js %}
+    {% include_media 'internal_detail.js' %}
+{% endblock %}
+
+{% block jquery %}
+    {{ block.super }}
+    {% if user.is_authenticated %}
+    $('#comment_form_div').hide();
+    $(".comment_btn").click(function(){
+        $('#comment_form_div').slideDown("slow");
+        $(".comment_btn").hide();
+        $('html, body').animate({
+            scrollTop: $("#comment_form_div").offset().top
+        }, 1000);
+    });
+
+    $('#send_attachment_form').ajaxForm({
+        success: function(responseText, statusText, xhr, $form) {
+            var result = eval(responseText)['result'];
+            $('#field_attachment_id').val(result['id']);
+            $('#id_file').val('');
+            $('#send_msg_form').submit();
+        },
+        dataType: "json",
+        timeout:   60000
+    });
+    $('#post_msg_btn').click(function(){
+        $('#send_msg_form').submit();
+    });
+    $('#send_msg_form').submit(function(){
+        if ($('#send_msg_dlg').validationEngine('validate')) {
+            $('#msg-dialog-modal').dialog({
+                height: 140,
+                modal: true,
+                autoOpen: true,
+                zIndex: 3000,
+                closeOnEscape: false,
+                open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); }
+            });
+
+            if ($('#id_file').val() != null && $('#id_file').val() != '') {
+                $('#send_attachment_form').submit();
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
+    });
+    {% endif %}
+
+    {% if course.feed_url %}
+    $('#news_area').load('{% url portal.courses.views.get_news course.id 0 3 %}', null, function(){
+        $('#news_list img').each(function(){resize_img_fn($(this));});
+    });
+    {% endif %}
+
+    {% if user.is_authenticated %}
+    $('#send_msg_dlg').dialog({
+        width: 450,
+        height: 300,
+        modal: true,
+        resizable: false,
+        autoOpen: false
+    });
+    $('#send_msg_dlg').validationEngine();
+    $('#send_msg_btn').click(function(){
+        $('#send_msg_dlg').dialog('open');
+    });
+    {% if_is_owner course %}
+    $('#change_image_dialog').dialog({
+        height: 260,
+        width: 440,
+        modal: false,
+        autoOpen: false
+    });
+
+    $('#dialog-modal').dialog({
+        height: 140,
+        modal: true,
+        autoOpen: false
+    });
+
+
+    $('#image_wrapper_div').mouseover(function(){
+        $('#change_image_div').css('top', '10px');
+    });
+    $('#image_wrapper_div').mouseout(function(){
+        $('#change_image_div').css('top', '-1000px');
+    });
+
+    $('#change_image_div a').click(function(event) {
+        $('#change_image_dialog').dialog('open');
+        event.preventDefault();
+    });
+    $('#picture_field').change(function(){
+        $('#dialog-modal').dialog('open');
+        $('#picture_img').attr("src", "{% media_url 'images/please_wait.gif' %}");
+        $('#send_picture_form').submit();
+        return false;
+    });
+    $('#send_picture_form').ajaxForm({
+        success: function(responseText, statusText, xhr, $form) {
+            var result = eval(responseText)['result'];
+            $('#picture_id_hidden').val(result['picture_id']);
+            $('#picture_img').attr("src", "/image/" + result['thumb_id'] + "/");
+            $('#send_photo_btn').show();
+            $('#dialog-modal').dialog('close');
+        },
+        dataType: "json",
+        timeout:   60000
+    });
+    $('#save_picture_form').ajaxForm({
+        success: function(responseText, statusText, xhr, $form) {
+            var result = eval(responseText)['result'];
+            $('#profile_picture_img').attr("src", "/image/" + result['thumb_id'] + "/");
+            $('#profile_picture_thumb_img').attr("src", "/image/" + result['thumb_small_id'] + "/");
+            $('#change_image_dialog').dialog('close');
+            $('#dialog-modal').dialog('close');
+        },
+        dataType: "json",
+        timeout:   60000
+    });
+    $('#send_photo_btn').click(function(event){
+        $('#dialog-modal').dialog('open');
+        $('#profile_picture_img').attr("src", "{% media_url 'images/please_wait.gif' %}");
+        $('#save_picture_form').submit();
+        return false;
+    });
+    {% endif_is_owner %}
+    {% endif %}
+    {% if course.twitter_id %}
+        $('#twitter_container').twit('{{ course.twitter_id }}', {
+          limit: 3,
+          label: 'Twitter',
+          title: 'My tweets'
+        });
+    {% endif %}
+    {% if albums %}
+        $('#album_slider').bxSlider({
+            displaySlideQty: 6,
+            moveSlideQty: 1
+        });
+        $('#album_container').css('margin', '2px 0 -23px 50px').css('padding', '0');
+    {% endif %}
+    {% if course.discipline_set.all|length > 0 %}
+        $('#discipline_list').load('{% url portal.courses.views.get_disciplines course.id 0 9 %}');
+    {% endif %}
+
+    //Carregamentos dinamicos
+    $('#teachers_list').load('{% url portal.courses.views.get_teachers course.institution.slug course.slug %}', null, function(){
+        $('#teachers_list').css('display', '');
+    });
+    $('#students_list').load('{% url portal.courses.views.get_students course.institution.slug course.slug %}', null, function(){
+        $('#students_list').css('display', '');
+    });
+{% endblock %}
+
+{% block options %}
+    <br/>
+    <div id="image_wrapper_div">
+        {% if course.picture %}
+            <img id="profile_picture_img" src="{{ course.picture|thumbnail:"180x180" }}"/>
+        {% else %}
+            <img id="profile_picture_img" src="{% media_url 'images/books_big.png' %}" width="180" height="180"/>
+        {% endif %}
+        {% if_is_owner course %}
+        <div id="change_image_div" class="alpha60">
+            <a href="#"><h1>Mudar a Imagem</h1></a>
+        </div>
+        {% endif_is_owner %}
+    </div>
+
+    <ul>
+        {% if course.discipline_set.all|length > 0 %}<li><h2 style="text-align:center;">{{ course.discipline_set.all|length }} Disciplinas</h2></li>{% endif %}
+        {% if course.get_teachers %}<li><h2 style="text-align:center;">{{ course.get_teachers|length }} Professores</h2></li>{% endif %}
+        {% if course.get_students %}<li><h2 style="text-align:center;">{{ course.get_students|length }} Alunos</h2></li>{% endif %}
+
+        {% if_is_owner course.institution %}
+        <li><img src="{% media_url 'images/icons/wrench_orange.png' %}"/> <span><b>Opções de Administração</b></span>
+            <ul style="margin-left:20px">
+                <a href="{% url portal.album.views.save course.get_class_name course.slug %}"><li class="lmenu_option"><img src="{% media_url 'images/icons/images.png' %}"/> <span>Adicionar Álbum</span></li></a>
+                <a href="{% url portal.courses.views.save institution.slug course.slug %}"><li class="lmenu_option"><img src="{% media_url 'images/icons/database_edit.png' %}"/> <span>Editar</span></li></a>
+                <a href="{% url portal.files.views.upload course.get_class_name course.id %}"><li class="lmenu_option"><img src="{% media_url 'images/icons/folder_go.png' %}"/> <span>Enviar Material</span></li></a>
+            </ul>
+        </li>
+        {% endif_is_owner %}
+
+        {% if course.feed_url %}<a href="#" id="news_anchor"><li class="lmenu_option"><img src="{% media_url 'images/icons/feed.png' %}"/> <span>Notícias</span></li></a>{% endif %}
+        {% if albums %}<a href="#" id="albums_anchor"><li class="lmenu_option"><img src="{% media_url 'images/icons/photos.png' %}"/> <span>Fotos ({{ photo_count }})</span></li></a>{% endif %}
+        {% if files %}<a href="#" id="files_anchor"><li class="lmenu_option"><img src="{% media_url 'images/icons/folder_star.png' %}"/> <span>Materiais ({{ files|length }})</span></li></a>{% endif %}
+    
+    </ul>
+
+    <div class="content_box">
+        <h2>{% trans "Institution" %}</h2>
+        <p><a href="{% url portal.institutions.views.detail course.institution.slug %}">
+            {% if course.institution.picture %}
+            <img src="{{ course.institution.picture|thumbnail:"50x50" }}"/>
+            {% else %}
+            <img src="{% media_url 'images/genericFace_thumb.gif' %}"/>
+            {% endif %}
+            <span>{{ course.institution.name }}</span>
+        </a></p>
+    </div>
+
+    {% if course.twitter_id %}
+    <div id="twitter_area" class="content_box">
+        <h2>Nosso Twitter <img src="{% media_url 'images/twitter_icon.png' %}"/></h2>
+        <div id="twitter_container"></div>
+    </div>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if user.is_authenticated %}
+        <div class="message_buttons">
+            <button id="send_msg_btn"><img src="{% media_url 'images/icons/email.png' %}"/> Enviar mensagem</button>
+        </div>
+    {% endif %}
+
+    <h1 style="font-size:20px;padding:5px;">{{ course.name }}</h1>
+    <div class="content_box">
+        <h2>{% trans "Description" %}</h2>
+        {% autoescape off %}
+        <p>{{ course.description|break_text:95|linebreaksbr|safe|escape }}</p>
+        {% endautoescape %}
+    </div>
+    <br/>
+
+    {% get_message_count for course as message_count %}
+    {% if message_count > 0 %}
+    <div class="content_box">
+        <h2>Últimas Mensagens</h2>
+        {% render_message_list for course %}
+    </div>
+    {% endif %}
+    
+    {% get_update_count for course as update_count %}
+    {% if update_count > 0 %}
+    <div class="content_box">
+        {% render_update_list for course %}
+    </div>
+    {% endif %}
+
+    {% if albums %}
+    <div class="content_box">
+        <h2>
+            {% trans "Albums" %}
+            ({% blocktrans count photo_count as counter %}one picture{% plural %}{{ counter }} pictures{% endblocktrans %})
+        </h2>
+        <div id="album_container">
+            <ul id="album_slider">
+            {% for album in albums %}
+                {% if album.cover %}
+                    {% for pic in album.picture_album_set.all %}
+                    <li style="width:110px;">
+                        <a href="{% url portal.album.views.detail course.get_class_name course.slug album.id %}"><img src="{{ pic.picture|thumbnail:"100x100" }}"/></a>
+                    </li>
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <br/>
+    {% endif %}
+
+    {% if files %}
+    <div id="files_area" class="content_box">
+        <h2>Arquivos</h2>
+        <ul style="margin: 5px 0px 5px 10px;">
+        {% for file in files %}
+            {% url portal.files.views.download file.id as fallback_url %}
+            <li>
+                <a href="{% firstof upload.file|public_download_url fallback_url %}">
+                    <img src="{% media_url 'images/icons/folder.png' %}"/>&nbsp;
+                    <span style="position:relative;top:-3px;">{{ file.description|safe|escape }}
+                        <i>(
+                            {{ file.file.size|sizify }}
+                            postado há {{ file.date_published|timesince }}
+                            {% if_is_owner course %}, baixado {{ file.downloads }} vez{{ file.downloads|pluralize:"es" }}{% endif_is_owner %}
+                        )</i>
+                    </span>
+                </a>
+                {% if_is_owner course %}
+                &nbsp;<a href="{% url portal.files.views.delete file.id course.get_absolute_url %}"><img src="{% media_url 'images/icons/cross.png' %}"/></a>
+                {% endif_is_owner %}
+            </li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if course.discipline_set.all|length > 0 %}
+    <div id="discipline_list" class="content_box">
+        <h2><img src="{% media_url 'images/please_wait.gif' %}"/> {% trans "Loading the disciplines ..." %}</h2>
+    </div>
+    {% endif %}
+
+    <div id="teachers_list" class="content_box" style="display:none">
+        <h2><img src="{% media_url 'images/please_wait.gif' %}"/> {% trans "Loading the teachers ..." %}</h2>
+    </div>
+
+    <div id="students_list" class="content_box" style="display:none">
+        <h2><img src="{% media_url 'images/please_wait.gif' %}"/> {% trans "Loading the students ..." %}</h2>
+    </div>
+    <br/>
+
+    {% if course.feed_url %}
+    <div id="news_area" class="content_box">
+        <h2><img src="{% media_url 'images/please_wait.gif' %}"/> {% trans "Loading the news ..." %}</h2>
+    </div>
+    {% endif %}
+    
+    <div id="comments_area" class="content_box">
+        {% get_comment_count for course as comment_count %}
+        <h2>
+            {% trans "Comments" %}
+            ({% blocktrans count comment_count as counter %}one comment{% plural %}{{ counter }} comments{% endblocktrans %})
+        </h2>
+        {% if comment_count > 0 %}
+            {% if user.is_authenticated %}
+            <button class="comment_btn">{% trans "Make Your Comment" %}</button>
+            {% endif %}
+            {% render_comment_list for course %}
+        {% else %}
+            <p>
+                {% trans "There are no comments about this course." %}
+                {% if user.is_authenticated %}
+                <br/>
+                {% trans "Be the first to say something:" %}
+                {% endif %}
+            </p>
+        {% endif %}
+
+        {% if user.is_authenticated %}
+            <button class="comment_btn">{% trans "Make Your Comment" %}</button>
+            <br/><h1>&nbsp;</h1>
+            <div id="comment_form_div" title="{% trans "Your Comment" %}">
+                {% render_comment_form for course %}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block page_end %}
+    {% if user.is_authenticated %}
+    {% if_is_owner course %}
+    <div id="change_image_dialog" title="Mudando a sua imagem ...">
+        <div class="upload_photo_div"   >
+            {% if picture %}
+                <img id="picture_img" src="{{ picture|thumbnail:"200x200" }}"/>
+            {% else %}
+                <img id="picture_img" src="{% media_url 'images/genericFace.gif' %}" alt="No Picture"/>
+            {% endif %}
+
+            <button id="select_photo_btn" class="sexybutton sexysimple sexyorange">Selecionar Foto</button>
+            <button id="send_photo_btn"   class="sexybutton sexysimple sexyorange">Enviar</button>
+
+            <form onsubmit="return false;" id="send_picture_form" enctype="multipart/form-data" action="{% url portal.accounts.views.set_picture %}">
+                {% csrf_token %}
+                <input type="file" name="picture" id="picture_field"/>
+            </form>
+
+            <div class="clear"/>
+        </div>
+        <form style="position:fixed;top:-1000px" id="save_picture_form" enctype="multipart/form-data" action="{% url portal.courses.views.save_picture course.id %}">
+            {% csrf_token %}
+            <input type="hidden" name="picture_id" id="picture_id_hidden" />
+        </form>
+    </div>
+    <div id="dialog-modal" title="Enviando a imagem ..." style="display:none;">
+	    <h1 style="text-align:center;">Por favor aguarde ...</h1>
+        <span style="position: relative; left: 50%; margin-left: -24px;"><img src="{% media_url 'images/please_wait.gif' %}"/></span>
+    </div>
+    {% endif_is_owner %}
+    <div id="send_msg_dlg" title="Nova mensagem">
+        <table>
+            <tbody>
+                <form id="send_msg_form" action="{% url portal.messages.views.post_message %}" method="POST">
+                    {% csrf_token %}
+                    {{ msg_form }}
+                    <input type="hidden" id="field_attachment_id" name="attachment_id"/>
+                </form>
+                <tr id="attachment_list_row" style="display:none;">
+                    <th><label>Attachments</label></th>
+                    <td id="attachment_list_col">
+                    </td>
+                </tr>
+                <form id="send_attachment_form" onsubmit="return false;" action="{{ upload_url }}" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {% render_upload_data upload_data %}
+                    {{ attach_form }}
+                </form>
+                <tr>
+                    <th>&nbsp;</th>
+                    <td class="button_row" id="post_msg_btn">
+                        <input type="submit" class="sexybutton sexysimple sexyorange" value="Enviar"/>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div id="msg-dialog-modal" title="Enviando a mensagem ..." style="display:none;">
+        <h1 style="text-align:center;">Por favor aguarde ...</h1>
+        <span style="position: relative; left: 50%; margin-left: -24px;"><img src="{% media_url 'images/please_wait.gif' %}"/></span>
+    </div>
+    {% endif %}
+    <div id="view_msg_dlg" style="display:none">
+        <p style="text-align:center;"><img src="{% media_url 'images/please_wait.gif' %}"/></p>
+        <h1 style="text-align:center;">Carregando a sua mensagem ...</h1>
+        <h2 style="text-align:center;">Por favor aguarde</h2>
+    </div>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% load i18n %}
+{% load images %}
+{% load security %}
+{% load media %}
+
+<br/>
+<div id="image_wrapper_div">
+    {% if institution.picture %}
+        <img id="profile_picture_img" src="{{ institution.picture|thumbnail:"180x180" }}"/>
+    {% else %}
+        <img id="profile_picture_img" src="{% media_url 'images/genericFace.gif' %}" width="180" height="180"/>
+    {% endif %}
+    {% if_is_owner institution %}
+    <div id="change_image_div" class="alpha60">
+        <a href="#"><h1>Mudar a Imagem</h1></a>
+    </div>
+    {% endif_is_owner %}
+</div>
+
+<ul>
+    <li><h2 id="courses_anchor" style="text-align:center;"><a href="#">{{ institution.course_set.all|length }} Cursos</a></h2></li>
+    <li><h2 id="teachers_anchor" style="text-align:center;"><a href="#">{{ institution.get_teachers|length }} Professores</a></h2></li>
+    <li><h2 id="students_anchor" style="text-align:center;"><a href="#">{{ institution.get_student_count }} Alunos</a></h2></li>
+    <li><br/></li>
+    {% if_is_owner institution %}
+    <li><img src="{% media_url 'images/icons/wrench_orange.png' %}"/> <span><b>Opções de Administração</b></span>
+        <ul style="margin-left:20px">
+            <a href="{% url portal.album.views.save institution.get_class_name institution.slug %}"><li class="lmenu_option"><img src="{% media_url 'images/icons/images.png' %}"/> <span>Adicionar Álbum</span></li></a>
+            <a href="{% url portal.courses.views.save institution.slug %}"><li class="lmenu_option"><img src="{% media_url 'images/icons/add.png' %}"/> <span>Adicionar Curso</span></li></a>
+            <a href="{% url portal.institutions.views.save institution.slug %}"><li class="lmenu_option"><img src="{% media_url 'images/icons/database_edit.png' %}"/> <span>Editar</span></li></a>
+            <a href="{% url portal.files.views.upload institution.get_class_name institution.id %}"><li class="lmenu_option"><img src="{% media_url 'images/icons/folder_go.png' %}"/> <span>Enviar Arquivo</span></li></a>
+        </ul>
+    </li>
+    {% endif_is_owner %}
+    {% if institution.feed_url %}
+        {% if institution.feed_url %}<a href="#" id="news_anchor"><li class="lmenu_option"><img src="{% media_url 'images/icons/feed.png' %}"/> <span>Notícias</span></li></a>{% endif %}
+        {% if albums %}<a href="#" id="albums_anchor"><li class="lmenu_option"><img src="{% media_url 'images/icons/photos.png' %}"/> <span>Fotos ({{ photo_count }})</span></li></a>{% endif %}
+        {% if files %}<a href="#" id="files_anchor"><li class="lmenu_option"><img src="{% media_url 'images/icons/folder_star.png' %}"/> <span>Materiais ({{ files|length }})</span></li></a>{% endif %}
+    {% endif %}
+</ul>
+{% if institution.twitter_id %}
+<div id="twitter_area" class="content_box">
+    <h2>Nosso Twitter <img src="{% media_url 'images/twitter_icon.png' %}"/></h2>
+    <div id="twitter_container"></div>
+</div>
+{% endif %}
+
+<script type="text/javascript">
+    $('#courses_anchor').click(function(event){
+        $('html, body').animate({scrollTop: $("#course_box").offset().top}, 500);
+        event.preventDefault();
+        return false;
+    });
+    $('#teachers_anchor').click(function(event){
+        $('html, body').animate({scrollTop: $("#teachers_list").offset().top}, 500);
+        event.preventDefault();
+        return false;
+    });
+    $('#students_anchor').click(function(event){
+        $('html, body').animate({scrollTop: $("#students_list").offset().top}, 500);
+        event.preventDefault();
+        return false;
+    });
+    $('#news_anchor').click(function(event){
+        $('html, body').animate({scrollTop: $("#news_area").offset().top}, 500);
+        event.preventDefault();
+        return false;
+    });
+</script>

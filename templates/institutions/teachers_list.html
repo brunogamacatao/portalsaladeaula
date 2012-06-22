@@ -1,0 +1,19 @@
+{% load images %}
+{% load media %}
+{% if teachers %}
+<h2>Professores</h2>
+<ul class="item_list">
+{% for teacher in teachers %}
+    <li>
+        <a href="{{ teacher.get_absolute_url }}">
+            {% if teacher.picture %}
+            <img src="{{ teacher.picture|thumbnail:"50x50" }}"/>
+            {% else %}
+            <img src="{% media_url 'images/genericFace_thumb.gif' %}" width="50px" height="50px"/>
+            {% endif %}
+            <p>{{ teacher.name }}</p>
+        </a>
+    </li>
+{% endfor %}
+</ul>
+{% endif %}

@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% load media %}
+
+{% block css %}
+    {% include_media 'poll_answer.css' %}
+{% endblock %}
+
+{% block preload_js %}
+    {% include_media 'poll_answer.js' %}
+{% endblock %}
+
+{% block jquery %}
+    {{ block.super }}
+    $(".help_img").cluetip();
+
+    $("#my_form_id").submit(function() {
+        var result = true;
+
+        $(':radio').each(function() {
+            var selected = false;
+
+            $("input[name='" + $(this).attr("name") + "']").each(function() {
+                if ($(this).is(':checked')) {
+                    selected = true;
+                }
+            });
+
+            if (!selected) {
+                result = false;
+            }
+        });
+
+        if (!result) {
+            alert('Você deve responder a todas as perguntas !');
+        }
+
+        return result;
+    });
+    
+    $("#my_form_id").validationEngine();
+{% endblock %}
+
+{% block content %}
+    <h2>{{ poll.title }}</h2>
+    <form action="" method="POST" id="my_form_id">
+        <input type="hidden" name="form-TOTAL_FORMS"   value="{{ question_count }}" id="id_form-TOTAL_FORMS" />
+        <input type="hidden" name="form-INITIAL_FORMS" value="0" id="id_form-INITIAL_FORMS" />
+        <input type="hidden" name="form-MAX_NUM_FORMS" id="id_form-MAX_NUM_FORMS" />
+        {% csrf_token %}
+        {% for group in poll.group_set.all %}
+            <h2>
+                {% if group.help %}
+                    <img src="{% media_url 'images/help.png' %}" title="{{ group.help }}"/>
+                {% endif %}
+                {{ group.sequence }}. {{ group.title }}
+            </h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 40px">Ajuda</th>
+                        <th style="width: 410px">Questão</th>
+                        <th style="width: 50px">Não concordo totalmente</th>
+                        <th style="width: 50px">Não concordo parcialmente</th>
+                        <th style="width: 50px">Indeciso</th>
+                        <th style="width: 50px">Concordo parcialmente</th>
+                        <th style="width: 50px">Concordo totalmente</th>
+                    </tr>
+                </thead>
+                {% for question in group.question_set.all %}
+                <tr class="poll_question">
+                    <td style="text-align: center">
+                        {% comment %}The fields below are for the ManagementForm data{% endcomment %}
+                        <input type="hidden" name="form-{{ counter.next }}-question" id="id_form-{{ counter.value }}-question" value="{{ question.id }}"/>
+
+                        {% if question.help %}
+                            <img class="help_img" src="{% media_url 'images/help.png' %}" title="{{ question.help }}"/>
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% comment %}Question's title{% endcomment %}
+                        <label for="id_form-{{ counter.value }}-answer">
+                            {{ group.sequence }}.{{ question.sequence }}. {{ question.title }}
+                        </label>
+                    </td>
+                    {% comment %}Below we render the field for answer the question according to its kind{% endcomment %}
+                    {% if question.kind == 'M' %} {% comment %} Multiple Choices {% endcomment %}
+                        <td colspan="5">
+                            <select name="form-{{ counter.value }}-answer" id="id_form-{{ counter.value }}-answer" class="validate[required]">
+                                <option value="" selected="selected">---------</option>
+                                {% for choice in question.choice_set.all %}
+                                <option value="{{ choice.id }}">{{ choice.choice }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                    {% endif %}
+                    {% if question.kind == 'L' %} {% comment %} Lickert Scale {% endcomment %}
+                        <td><input type="radio" name="form-{{ counter.value }}-answer" class="validate[required]" value="1"/></td>
+                        <td><input type="radio" name="form-{{ counter.value }}-answer" class="validate[required]" value="2"/></td>
+                        <td><input type="radio" name="form-{{ counter.value }}-answer" class="validate[required]" value="3"/></td>
+                        <td><input type="radio" name="form-{{ counter.value }}-answer" class="validate[required]" value="4"/></td>
+                        <td><input type="radio" name="form-{{ counter.value }}-answer" class="validate[required]" value="5"/></td>
+                    {% endif %}
+                    {% if question.kind == 'D' %} {% comment %} Discursive {% endcomment %}
+                        <td colspan="5">
+                            <input name="form-{{ counter.value }}-answer" id="id_form-{{ counter.value }}-answer" type="text" class="validate[required]"/>
+                        </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </table>
+        {% endfor %}
+        <p>
+           <input type="submit" value="Enviar Respostas"/>
+        </p>
+    </form>
+{% endblock %}

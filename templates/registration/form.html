@@ -1,0 +1,10 @@
+{% extends "form.html" %}
+{% load i18n %}
+
+{% block search_box %}{% endblock %}
+{% block form_title %}<h2>Seja muito bem vindo !</h2>{% endblock %}
+
+{% block jquery %}
+    $('#id_email').addClass('validate[required,custom[email]] text-input');
+    {{ block.super }}
+{% endblock %}

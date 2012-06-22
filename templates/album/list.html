@@ -1,0 +1,25 @@
+{% extends 'institutions/detail.html' %}
+{% load i18n %}
+{% load images %}
+
+{% block content %}
+    {% if user.is_authenticated %}
+    <div id="albums_buttons" style="float: right;">
+        <a href="{% url portal.album.views.save institution.slug %}" class="sexybutton sexysimple sexyorange">{% trans "Create new album" %}</a>
+    </div>
+    <div class="clear">&nbsp;</div>
+    {% endif %}
+    <ul>
+    {% for album in albums %}
+        <li>
+            {% if album.cover %}
+            <img src="{{ album.cover|thumbnail:"100x100" }}"/>
+            {% endif %}
+            <a href="{% url portal.album.views.detail institution.slug album.id %}">{{ album.title }} - {{ album.date_published|timesince }}</a>
+        </li>
+    {% empty %}
+        {% trans "There are no albums for this institution" %}
+    {% endfor %}
+    </ul>
+    <br/>
+{% endblock %}

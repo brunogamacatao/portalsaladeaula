@@ -1,0 +1,21 @@
+.poll_question {
+    padding: 0 0 0 5px;
+}
+
+.poll_question label {
+    display: block;
+    vertical-align: top;
+}
+
+.poll_question label img {
+    float: left;
+    margin: 2px;
+}
+
+table {
+    border-collapse:collapse;
+}
+
+table,th, td {
+    border: 2px solid #BBB;
+}

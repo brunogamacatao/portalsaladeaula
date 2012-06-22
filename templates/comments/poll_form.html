@@ -1,0 +1,31 @@
+{% load comments i18n %}
+<form action="{% comment_form_target %}" method="post">{% csrf_token %}
+  {% if next %}<div><input type="hidden" name="next" value="{{ next }}" /></div>{% endif %}
+  {% for field in form %}
+    {% if field.is_hidden %}
+      <div>{{ field }}</div>
+    {% else %}
+      {% if field.errors %}{{ field.errors }}{% endif %}
+      {% ifequal field.name "ranking" %}
+          <p>
+            <span class="label">{% trans "Rate it" %}</span>
+            <br/>
+            <input type="radio" name="ranking" value="1" class="star"/>
+            <input type="radio" name="ranking" value="2" class="star"/>
+            <input type="radio" name="ranking" value="3" class="star"/>
+            <input type="radio" name="ranking" value="4" class="star"/>
+            <input type="radio" name="ranking" value="5" class="star"/>
+          </p>
+      {% else %}
+      <p
+        {% if field.errors %} class="error"{% endif %}
+        {% ifequal field.name "honeypot" %} style="display:none;"{% endifequal %}>
+        {{ field.label_tag }}<br/>{{ field }}
+      </p>
+      {% endifequal %}
+    {% endif %}
+  {% endfor %}
+  <p class="submit">
+    <input type="submit" name="post" class="submit-post" value="{% trans "Post" %}" />
+  </p>
+</form>

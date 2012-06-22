@@ -1,0 +1,38 @@
+/** Twit **/
+.twit {
+ padding: 0px;
+}
+.twitUser {
+  background-color: #fff;
+  border-bottom: none;
+  font-size:160%;
+  padding: 7px;
+}
+.twitUser a{
+  color:#222;
+  font-weight:bold;
+  text-decoration: none;
+}
+.twitBody {
+  background-color: #ffffff;
+  padding: 0 7px 0px 0px;
+  margin: 0;
+  list-style: none;
+}
+.twitEntry {
+  padding: 6px 0px;
+  margin: 0;
+  border-bottom: dashed 1px #ccc;
+  height: auto !important;
+}
+.twitNavi {
+  clear: both;
+  text-align: center;
+  margin: 5px 0 0 0;
+  padding: 0;
+  background-color: #ffffff;
+}
+
+#twitter_container {
+    overflow:hidden;
+}

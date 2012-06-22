@@ -1,0 +1,153 @@
+{% load i18n %}
+{% load images %}
+{% load text %}
+{% load filetransfers %}
+{% load media %}
+
+<h2>
+{% if message.author.get_profile.picture %}
+    <img style="float:left;" src="{{ message.author.get_profile.picture|thumbnail:"50x50" }}"/>
+{% else %}
+    <img style="float:left;" src="{% media_url 'images/genericFace_thumb.gif' %}" width="50px" height="50px"/>
+{% endif %}
+    <div style="vertical-align: top;float: left;margin-left:5px;font-weight:normal;">
+        <b>{{ message.author.get_profile.name }}</b>, <i>há {{ message.date_published|timesince }}</i>,  escreveu:<br/>
+        {{ message.subject }}
+    </div>
+    <div style="clear:both;">&nbsp;</div>
+</h2>
+{% if message.attachment_set.all %}
+<div style="font-size:11px;">
+    <b>Anexos:</b><br/>
+    {% for attachment in message.attachment_set.all %}
+        <a href="{% url portal.messages.views.download_attachment attachment.id %}">
+            <img src="{% media_url 'images/icons/email_attach.png' %}"/>&nbsp;
+            <span style="position:relative;top:-4px;">{{ attachment.file.name|filename }} ({{ attachment.file.size|filesizeformat }})</span>
+        </a>
+        <br/>
+        {% if forloop.last %}
+        <hr/>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+<p>{{ message.text|linebreaksbr|escape|safe }}</p>
+{% if message.replies.all %}
+    {% for reply in message.replies.all %}
+        <hr/>
+        <h2 {% if forloop.last %}id="last_message_header"{% endif %}>
+        {% if reply.child.author.get_profile.picture %}
+            <img style="float:left;" src="{{ reply.child.author.get_profile.picture|thumbnail:"50x50" }}"/>
+        {% else %}
+            <img style="float:left;" src="{% media_url 'images/genericFace_thumb.gif' %}" width="50px" height="50px"/>
+        {% endif %}
+            <div style="vertical-align: top;float: left;margin-left:5px;font-weight:normal;">
+                <b>{{ reply.child.author.get_profile.name }}</b>, <i>há {{ reply.child.date_published|timesince }}</i>,  respondeu:<br/>
+                {{ reply.child.subject }}
+            </div>
+            <div style="clear:both;">&nbsp;</div>
+        </h2>
+        {% if reply.child.attachment_set.all %}
+        <div style="font-size:11px;">
+            <b>Anexos:</b><br/>
+            {% for attachment in reply.child.attachment_set.all %}
+                <a href="{% url portal.messages.views.download_attachment attachment.id %}">
+                    <img src="{% media_url 'images/icons/email_attach.png' %}"/>&nbsp;
+                    <span style="position:relative;top:-4px;">{{ attachment.file.name|filename }} ({{ attachment.file.size|filesizeformat }})</span>
+                </a>
+                <br/>
+                {% if forloop.last %}
+                <hr/>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+        <p>{{ reply.child.text|linebreaksbr|escape|safe }}</p>
+    {% endfor %}
+{% endif %}
+
+<style type="text/css">
+    #reply_div {
+        border: 1px solid #CCC;
+        padding: 5px;
+        width: 764px;
+        margin: 0;
+    }
+
+    #reply_div table {
+        width: 100%;
+    }
+
+    #reply_div th {
+        width: 73px;
+    }
+
+    #reply_div td input[type="text"], #reply_div td textarea, #reply_div td input[type="submit"] {
+        width: 670px;
+    }
+</style>
+
+<div id="reply_div">
+    <form id="reply_msg_form" action="{% url portal.messages.views.post_reply %}" method="POST">
+    <table>
+        <tbody>
+                {% csrf_token %}
+                <input type="hidden" name="content_type"  value="{{ content_type }}"/>
+                <input type="hidden" name="object_pk"     value="{{ object_pk }}"/>
+                <input type="hidden" name="attachment_id" id="reply_field_attachment_id"/>
+                <input type="hidden" name="message_id"    value="{{ message.id }}"/>
+                <tr>
+                    <th><label for="id_asubject">Assunto:</label></th>
+                    <td><input id="id_asubject" type="text" class="validate[required] text-input" name="subject" maxlength="100" /></td>
+                </tr>
+                <tr>
+                    <th><label for="id_atext">Mensagem:</label></th>
+                    <td><textarea id="id_atext" rows="10" cols="40" name="text" class="validate[required] text-input"></textarea></td>
+                </tr>
+            <tr id="reply_attachment_list_row" style="display:none;">
+                <th><label>Attachments</label></th>
+                <td id="reply_attachment_list_col"></td>
+            </tr>
+            <!--form id="reply_attachment_form" onsubmit="return false;" action="{{ upload_url }}" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                {% render_upload_data upload_data %}
+                {{ attach_form }}
+            </form-->
+            <tr>
+                <th>&nbsp;</th>
+                <td class="button_row" id="reply_msg_btn">
+                    <input type="button" class="sexybutton sexysimple sexyorange" value="{% trans "Reply" %}"/>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    </form>
+</div>
+
+<div style="width:100%;text-align:right;"><button id="reply_btn" class="sexybutton sexysmall sexysimple sexyorange">Responder</button></div>
+
+<script type="text/javascript">
+    $('#reply_div').hide();
+    $('#reply_btn').click(function(){
+        $('#reply_btn').hide();
+        $('#reply_div').show();
+        $("#view_msg_dlg").attr({ scrollTop: $("#view_msg_dlg").attr("scrollHeight") });
+    });
+    {% if message.replies.all %}
+    $('#view_msg_dlg').animate({
+        scrollTop: $("#last_message_header").offset().top
+    }, 1000);
+    {% endif %}
+
+    $('#reply_msg_btn').click(function(){
+        $('#reply_msg_form').submit();
+    });
+
+    $('#reply_msg_form').submit(function(){
+        if ($('#reply_div').validationEngine('validate')) {
+            return true;
+        }
+
+        return false;
+    });
+</script>

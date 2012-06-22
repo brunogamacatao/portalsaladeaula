@@ -1,0 +1,56 @@
+{% load images %}
+{% load i18n %}
+{% load media %}
+
+{% if update_list %}
+<style type="text/css">
+    .update_item {
+        margin: 5px;
+    }
+
+    .update_item a {
+        font-weight: bold;
+    }
+
+    .update_item img {
+        float: left;
+        margin: 0px 5px 0px 5px;
+    }
+
+    .update_item .update_details {
+        float: left;
+    }
+
+    .update_item .update_timesince {
+        font-style: italic;
+        color: #999;
+    }
+</style>
+
+<h2>{% trans "Updates" %}</h2>
+
+<div id="updates_div" class="update_list">
+  {% for update in update_list %}
+    <div id="c{{ update.id }}" class="update_item">
+        {% if update.author.get_profile.picture %}
+            <img src="{{ update.author.get_profile.picture|thumbnail:"50x50" }}"/>
+        {% else %}
+            <img src="{% media_url 'images/genericFace_thumb.gif' %}" width="50px" height="50px"/>
+        {% endif %}
+        <div class="update_details">
+            <span class="update_author">
+                <a href="{{ update.author.get_profile.get_absolute_url }}">
+                {{ update.author.get_profile.name }}
+                </a>
+                {{ update.text|escape|safe }}
+            </span>
+            <br/>
+            <a href="{{ update.link }}">Ver mais ...</a>
+            <br/>
+            <span class="update_timesince">há {{ update.date_published|timesince }}</span>
+        </div>
+        <div style="clear:both;">&nbsp;</div>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}

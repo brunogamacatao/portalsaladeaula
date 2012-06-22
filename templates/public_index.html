@@ -1,0 +1,394 @@
+{% extends "home.html" %}
+{% load i18n %}
+{% load images %}
+{% load media %}
+
+{% block css %}
+    {% include_media 'public_site.css' %}
+{% endblock %}
+
+{% block preload_js %}
+    {% include_media 'public_site.js' %}
+{% endblock %}
+
+{% block options %}
+    <div id="image_wrapper_div">
+        <img id="profile_picture_img" src="{% media_url 'images/logo_big.png' %}" width="180" height="180"/>
+    </div>
+    <br/>
+    <h1 style="text-align:center;font-size:23px;width:185px;">Portal<br/>Sala de Aula</h1>
+{% endblock %}
+
+
+{% block content_right %}
+    <div class="content_box">
+        <h2>Nossas Instituições</h2>
+        <div class="comment_list">
+            {% for inst in institutions %}
+            <div class="comment_item">
+                <a href="{% url portal.institutions.views.detail inst.slug %}">
+                    {% if inst.picture %}
+                    <img src="{{ inst.picture|thumbnail:"50x50" }}"/>
+                    {% else %}
+                    <img src="{% media_url 'images/genericFace_thumb.gif' %}" width="50px" height="50px"/>
+                    {% endif %}
+                </a>
+                <div class="comment_data">
+                    <p><a href="{% url portal.institutions.views.detail inst.slug %}">{{ inst.name }}</a></p>
+                </div>
+            </div>
+            <div class="clear"></div>
+            {% empty %}
+            <h3>Não há instituições cadastradas</h3>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <br/>
+    {% block error_msg %}{% endblock %}
+    <div id="div_initial">
+        <div class="content_box">
+            <h2>Seja bem-vindo !</h2>
+            <div style="font-size:20px;width: 100%;margin:20px 0px 0px 130px;">
+                <p style="font-size:20px;margin:0 0 30px 0;">Você é novo por aqui ?</p>
+                <button id="new_user_btn" style="float:left;margin-left:50px;" class="sexyxl">Cadastre-se</button>
+                <div class="clear">&nbsp;</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="div_buttons">
+        <div class="content_box">
+            <h2>Seja bem-vindo !</h2>
+        </div>
+
+        <div style="font-size:20px;margin:15px 0px 10px 140px;">
+            <p style="font-size:24px;margin:0 0 10px 0;">Você é:</p>
+            <button id="student_btn" class="sexyxl">Aluno</button> ou <button id="teacher_btn" class="sexyxl">Professor</button> ?
+        </div>
+    </div>
+
+    <div id="div_student" class="content_box">
+        <h2>Fale mais sobre você ...</h2>
+
+        <h3 id="div_student_error" style="color:#F00;font-weight:normal;margin: 10px 0 0 50px;display:none;">Não foi possível localizar um aluno com os dados informados</h3>
+        <form id="form_student" style="font-size:12px;margin:20px 0 0 40px;" method="POST" action="{% url portal.accounts.views.confirma_adicionar_aluno %}">
+            {% csrf_token %}
+            <table id="tbl_fields_aluno1">
+                <tr>
+                    <th><label for="id_matricula">Matrícula:</label></th>
+                    <td><input id="id_matricula" type="text" class="validate[required] text-input" name="matricula" maxlength="50" /></td>
+                </tr>
+                <tr>
+                    <th><label for="id_cpf">CPF:</label></th>
+                    <td><input id="id_cpf" type="text" class="validate[required] text-input" name="cpf" maxlength="50" /></td>
+                </tr>
+                <tr>
+                    <th><label for="id_password">Senha:</label></th>
+                    <td><input id="id_password" type="password" class="validate[required] text-input" name="senha" maxlength="50" /></td>
+                </tr>
+                <tr>
+                    <th><label for="id_password_confirm">Repetir senha:</label></th>
+                    <td><input id="id_password_confirm" type="password" class="validate[required,equals[id_password]] text-input" name="repete_senha" maxlength="50" /></td>
+                </tr>
+                <tr>
+                    <th></th>
+                    <td><input type="button" id="btn_caluno_1" class="sexybutton sexysimple sexyorange" value="Continuar"/></td>
+                </tr>
+            </table>
+            <table id="tbl_fields_aluno2" style="display:none;">
+                <tr>
+                    <th><label for="id_nome">Nome:</label></th>
+                    <td><input id="id_nome" type="text" class="validate[required] text-input" name="nome" maxlength="50" /></td>
+                </tr>
+                <tr>
+                    <th><label for="id_email">Email:</label></th>
+                    <td><input id="id_email" type="text" class="validate[required,custom[email]] text-input" name="email" maxlength="50" /></td>
+                </tr>
+                <tr>
+                    <th><label for="id_data_nasc">Data de nasc.:</label></th>
+                    <td><input id="id_data_nasc" type="text" class="validate[required] text-input" name="data_nasc" maxlength="10" /></td>
+                </tr>
+                <tr>
+                    <th></th>
+                    <td><input type="submit" id="btn_caluno_2" class="sexybutton sexysimple sexyorange" value="Confirmar"/></td>
+                </tr>
+            </table>
+        </form>
+        <p style="color:#999;"><i>Utilizaremos estes dados para recuperar informações sobre o curso e as disciplinas em que você está matriculado.</i></p>
+    </div>
+    <div id="div_teacher" class="content_box">
+        <h2>Seja muito bem-vindo professor !</h2>
+
+        <h3 id="div_teacher_error" style="color:#F00;font-weight:normal;margin: 10px 0 0 50px;display:none;">Não foi possível localizar uma disciplina com os dados informados</h3>
+        <form id="form_teacher" style="font-size:12px;margin:20px 0 0 40px;" method="POST" action="{% url portal.accounts.views.confirma_adicionar_professor %}">
+            {% csrf_token %}
+            <table id="tbl_fields_professor1">
+                <tr>
+                    <th><label for="id_instituicao">Instituição:</label></th>
+                    <td>
+                        <select id="id_instituicao" class="validate[required]" name="instituicao">
+                            <option>Selecione uma Instituição</option>
+                            <option value="facisa">Facisa</option>
+                            <option value="ufcg">Universidade Federal de Campina Grande</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th><label for="id_nome_professor">Nome:</label></th>
+                    <td><input id="id_nome_professor" type="text" class="validate[required] text-input" maxlength="50" /></td>
+                </tr>
+                <tr>
+                    <th><label for="id_email_professor">Email:</label></th>
+                    <td><input id="id_email_professor" type="text" class="validate[required,custom[email]] text-input" maxlength="50" /></td>
+                </tr>
+                <tr>
+                    <th><label for="id_data_nasc_professor">Data de nasc.:</label></th>
+                    <td><input id="id_data_nasc_professor" type="text" class="validate[required] text-input" maxlength="10" /></td>
+                </tr>
+                <tr>
+                    <th><label for="id_password_professor">Senha:</label></th>
+                    <td><input id="id_password_professor" type="password" class="validate[required] text-input" maxlength="50" /></td>
+                </tr>
+                <tr>
+                    <th><label for="id_password_confirm_professor">Repetir senha:</label></th>
+                    <td><input id="id_password_confirm_professor" type="password" class="validate[required,equals[id_password_professor]] text-input" maxlength="50" /></td>
+                </tr>
+                <tr>
+                    <th></th>
+                    <td>
+                        {% comment %}
+                        <input type="button" id="btn_professor_1" class="sexybutton sexysimple sexyorange" value="Continuar"/>
+                        {% endcomment %}
+                        <input type="submit" id="btn_professor_2" class="sexybutton sexysimple sexyorange" style="float:right;margin-right:2px;" value="Concluir"/>
+                        <input type="hidden" id="id_nome_prof"         name="nome"/>
+                        <input type="hidden" id="id_email_prof"        name="email"/>
+                        <input type="hidden" id="id_data_nasc_prof"    name="data_nasc"/>
+                        <input type="hidden" id="id_password_prof"     name="senha"/>
+                        <input type="hidden" id="id_lista_disciplinas" name="disciplinas"/>
+                    </td>
+                </tr>
+            </table>
+            {% comment %}
+            <div id="tbl_fields_professor2" style="display:none;">
+            <table>
+                <thead>
+                    <tr><th colspan="2" style="text-align:center;font-size:14px;"><b>Que disciplinas você leciona ?</b></th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th><label for="id_cod_disciplina">Cod. Disciplina:</label></th>
+                        <td><input id="id_cod_disciplina" type="text" name="nome" maxlength="50" /></td>
+                    </tr>
+                    <tr>
+                        <th><label for="id_senha_disciplina">Senha Disciplina:</label></th>
+                        <td><input id="id_senha_disciplina" type="text" name="nome" maxlength="50" /></td>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <td><input type="button" id="btn_adicionar_disciplina" class="sexybutton sexysimple sexyorange" value="Adicionar"/></td>
+                    </tr>
+                </tbody>
+            </table>
+                <p style="color:#999;"><i>É obrigatório informar pelo menos uma disciplina, você poderá acrescentar o restante depois, em sua página pessoal.</i></p>
+                <div id="disciplinas_div" class="content_box" style="display:none;">
+                    <h2>Disciplinas Selecionadas</h2>
+                    <table>
+                        <tbody id="disciplinas_tbl">
+                        </tbody>
+                    </table>
+                    <br/>
+                    <input type="submit" id="btn_professor_2" class="sexybutton sexysimple sexyorange" style="float:right;margin-right:2px;" value="Concluir"/>
+                    <div class="clear">&nbsp;</div>
+                </div>
+
+                <input type="hidden" id="id_nome_prof"         name="nome"/>
+                <input type="hidden" id="id_email_prof"        name="email"/>
+                <input type="hidden" id="id_data_nasc_prof"    name="data_nasc"/>
+                <input type="hidden" id="id_password_prof"     name="senha"/>
+                <input type="hidden" id="id_lista_disciplinas" name="disciplinas"/>
+            </div>
+            {% endcomment %}
+        </form>
+    </div>
+{% endblock %}
+
+{% block page_end %}
+    <div id="dialog-modal" title="Enviando dados ...">
+        <h1 style="text-align:center;margin:0 0 12px 0;">Por favor aguarde ...</h1>
+        <span style="position: relative; left: 50%; margin-left: -24px;"><img src="{% media_url 'images/please_wait.gif' %}"/></span>
+    </div>
+{% endblock %}
+
+{% block extra-head %}
+    {{ block.super }}
+    <script type="text/javascript">
+        var disciplinasSelecionadas = [];
+    </script>
+{% endblock %}
+
+{% block jquery %}
+    {{ block.super }}
+    $('#content_right').css('width', '500px').css('margin-right', '286px');
+    $('#content_right_right').css('width', '280px');
+    $('.comment_item .comment_data').css('width', '150px').css('margin-top', '2px');
+    $('.comment_item .comment_data p').css('font-weight', 'bold');
+
+    $('#dialog-modal').dialog({
+        height: 120,
+        width: 240,
+        modal: true,
+        autoOpen: false
+    });
+
+    $('#id_matricula').mask('999999');
+    $('#id_cpf').mask("999.999.999-99");
+    $('#id_data_nasc').mask("99/99/9999");
+    $('#id_data_nasc_professor').mask("99/99/9999");
+
+    $('#div_buttons').hide();
+    $('#div_student').hide();
+    $('#div_teacher').hide();
+
+    $('#new_user_btn').click(function() {
+        $('#div_initial').hide();
+        $('#div_buttons').show();
+    });
+    $('#student_btn').click(function() {
+        $('#div_buttons').hide();
+        $('#div_student').show();
+        $('#id_matricula').focus();
+        $("#form_student").validationEngine();
+    });
+    $('#teacher_btn').click(function() {
+        $('#div_buttons').hide();
+        $('#div_teacher').show();
+        $('#id_instituicao').focus();
+        $("#form_teacher").validationEngine();
+    });
+
+    var btn_continuar_1 = function() {
+        if ($("#form_student").validationEngine('validate')) {
+            $('#dialog-modal').dialog('open');
+            dados = $.param({"matricula": $('#id_matricula').val(), "cpf": $('#id_cpf').val()});
+            $.ajax({
+                type: "POST",
+                url: "{% url portal.accounts.views.adicionar_aluno %}",
+                dataType: "json",
+                data: dados,
+                success: function(dados) {
+                    if (dados.status == 'ok') {
+                        $('#tbl_fields_aluno1').hide();
+                        $('#tbl_fields_aluno2').show();
+                        $('#id_nome').val(dados.nome);
+                        $('#id_email').val(dados.email);
+                        $('#id_data_nasc').val(dados.data_nasc);
+                    } else {
+                        $('#div_student_error').html(dados.mensagem);
+                        $('#div_student_error').css('display', '');
+                    }
+
+                    $('#dialog-modal').dialog('close');
+                },
+                error: function(request, data) {
+                    $('#div_student_error').css('display', '');
+                    $('#dialog-modal').dialog('close');
+                }
+            });
+        }
+    };
+
+    $('#id_password_confirm').bind('keyup', function(event){
+        if (event.keyCode == 13) {
+            btn_continuar_1();
+        }
+    });
+    $('#btn_caluno_1').click(btn_continuar_1);
+
+    $('#btn_professor_1').click(function() {
+        if ($("#form_teacher").validationEngine('validate')) {
+            $('#tbl_fields_professor2').show();
+
+            $('#id_nome_prof').val($('#id_nome_professor').val());
+            $('#id_email_prof').val($('#id_email_professor').val());
+            $('#id_data_nasc_prof').val($('#id_data_nasc_professor').val());
+            $('#id_password_prof').val($('#id_password_professor').val());
+
+            $('#tbl_fields_professor1').hide();
+        }
+    });
+
+    $('#btn_adicionar_disciplina').click(function() {
+        $('#dialog-modal').dialog('open');
+        dados = $.param({"codigo": $('#id_cod_disciplina').val(), "senha": $('#id_senha_disciplina').val()});
+        $.ajax({
+            type: "POST",
+            url: "{% url portal.disciplines.views.get_discipline %}",
+            dataType: "json",
+            data: dados,
+            success: function(dados) {
+                if (dados.status == 'ok') {
+                    $('#div_teacher_error').css('display', 'none');
+                    $('#disciplinas_div').css('display', '');
+
+                    var contem = false;
+
+                    for (var i = 0; i < disciplinasSelecionadas.length; i++) {
+                        if (disciplinasSelecionadas[i] == dados.id) {
+                            contem = true;
+                            break;
+                        }
+                    }
+
+                    if (contem) {
+                        alert('Você já selecionou esta disciplina !');
+                    } else {
+                        var html = '<tr><td>' + dados.imagem + '</td><td>' + dados.nome +'</td></tr>';
+                        disciplinasSelecionadas[disciplinasSelecionadas.length] = dados.id;
+                        $('#disciplinas_tbl').html($('#disciplinas_tbl').html() + html);
+                    }
+
+                    $('#id_cod_disciplina').val('');
+                    $('#id_senha_disciplina').val('');
+                } else {
+                    $('#div_teacher_error').html(dados.mensagem);
+                    $('#div_teacher_error').css('display', '');
+                }
+
+                $('#dialog-modal').dialog('close');
+            },
+            error: function(request, data) {
+                $('#div_teacher_error').css('display', '');
+                $('#dialog-modal').dialog('close');
+            }
+        });
+    });
+
+    $('#form_teacher').submit(function(event){
+        /*if (disciplinasSelecionadas.length > 0) {
+            var lista_disciplinas = '';
+            for (var i = 0; i < disciplinasSelecionadas.length; i++) {
+                if (i > 0) lista_disciplinas += ',';
+                lista_disciplinas += disciplinasSelecionadas[i];
+            }
+            $('#id_lista_disciplinas').val(lista_disciplinas);
+
+            return true;
+        } else {
+            alert('Você deve informar pelo menos uma disciplina que você leciona');
+        }*/
+
+        if ($("#form_teacher").validationEngine('validate')) {
+            $('#id_nome_prof').val($('#id_nome_professor').val());
+            $('#id_email_prof').val($('#id_email_professor').val());
+            $('#id_data_nasc_prof').val($('#id_data_nasc_professor').val());
+            $('#id_password_prof').val($('#id_password_professor').val());
+            return true;
+        }
+
+        event.preventDefault();
+        return false;
+    });
+{% endblock %}

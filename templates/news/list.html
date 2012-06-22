@@ -1,0 +1,49 @@
+{% load i18n %}
+{% load media %}
+
+<h2>{% trans "Last News" %}</h2>
+<div id="news_list" class="comment_list">
+{% for news in entries %}
+    <div class="comment_item">
+        <a href="{{ news.main_link }}" target="_BLANK">
+            {{ news.main_image|safe|escape }}
+        </a>
+        <div class="comment_data">
+            <p><a href="{{ news.main_link }}" target="_BLANK"><b>{{ news.title }}</b></a></p>
+            <p><i>
+                {{ news.author }} escreveu esta notícia há {{ news.updated|timesince }}
+            </i></p>
+            <p class="news_summary_p">{{ news.summary_detail.value|safe|escape }}</p>
+            <p><a href="{{ news.main_link }}" target="_BLANK">{% trans "Read more ..." %}</a></p>
+        </div>
+        <div class="clear"></div>
+        {% if not forloop.last %}<hr/>{% endif %}
+    </div>
+{% endfor %}
+</div>
+<div class="clear"/>
+<div id="news_buttons">
+    {% if prev_url %}<button id="prev_news_btn" class="sexybutton sexysimple sexyorange">{% trans "Previous" %}</button>{% endif %}
+    {% if next_url %}<button id="next_news_btn" class="sexybutton sexysimple sexyorange">{% trans "Next" %}</button>{% endif %}
+</div>
+<div class="clear"/>
+<script type="text/javascript">
+    {% if next_url %}
+    var wait_template = '<h2><img src="{% media_url 'images/please_wait.gif' %}"/> {% trans "Loading the news ..." %}</h2>';
+
+    $('#next_news_btn').click(function(){
+        $('#news_area').load('{{ next_url }}', null, function(){
+            $('#news_list img').each(function(){resize_img_fn($(this));});
+        });
+        $('#news_area').html(wait_template);
+    });
+    {% endif %}
+    {% if prev_url %}
+    $('#prev_news_btn').click(function(){
+        $('#news_area').load('{{ prev_url }}', null, function(){
+            $('#news_list img').each(function(){resize_img_fn($(this));});
+        });
+        $('#news_area').html(wait_template);
+    });
+    {% endif %}
+</script>

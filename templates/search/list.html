@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+{% load images %}
+{% load text %}
+{% load media %}
+
+{% block css %}
+    {% include_media 'search.css' %}
+{% endblock %}
+
+{% block jquery %}
+    {{ block.super }}
+    $('#content_right ul li').click(function(event) {
+        window.location = $(this).children('a')[0];
+    });
+{% endblock %}
+
+{% block content %}
+    {% if result %}
+    <h1>{% trans "All results"%}</h1>
+    <div class="separator">&nbsp;</div>
+    <ul>
+        {% for item in result %}
+        <li>
+            <a href="{{ item.get_absolute_url }}">
+            {% if item.picture %}
+                <img src="{{ item.picture|thumbnail:"50x50" }}"/>
+            {% else %}
+                <img src="{% media_url 'images/genericFace_thumb.gif' %}" width="50px" height="50px"/>
+            {% endif %}
+            </a>
+            <div class="search_item"><a href="{{ item.get_absolute_url }}">
+                {{ item.name }}
+                {% if item.period %}
+                    ({{ item.period|format_period }})
+                {% endif %}
+            </a></div>
+            {% if not forloop.last %}
+                <div class="separator">&nbsp;</div>
+            {% else %}
+                <div style="clear:both;">&nbsp;</div>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+        <h1>{% trans "It was not possible to find results to your search." %}</h1>
+    {% endif %}
+{% endblock %}

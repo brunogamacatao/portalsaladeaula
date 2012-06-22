@@ -1,0 +1,7 @@
+Olá, temos uma nova atualização para você:
+{{ mensagem }}
+
+Acesse este link para visualizar esta atualização: {{ link }}
+
+Portal Sala de Aula 2011 - Todos os Direitos Reservados
+http://www.portalsaladeaula.com

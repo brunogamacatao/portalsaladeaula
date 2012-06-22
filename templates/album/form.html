@@ -1,0 +1,149 @@
+{% extends "form.html" %}
+{% load i18n %}
+{% load images %}
+{% load media %}
+
+{% block css %}
+    {% include_media 'album_form.css' %}
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var selectedPictureId = null;
+            var thumbId = null;
+
+            $('#dialog-modal').dialog({
+                height: 140,
+                modal: true,
+                autoOpen: false
+            });
+
+            $('#album_send_picture_form').ajaxForm({
+                success: function(responseText, statusText, xhr, $form) {
+                    var result = eval(responseText)['result'];
+                    selectedPictureId = result['picture_id'];
+                    thumbId = result['thumb_small_id'];
+                    $('#picture_img').attr("src", "/image/" + result['thumb_id'] + "/");
+                    $('#dialog-modal').dialog('close');
+                    $('#add_photo_btn').show();
+                },
+                error: function() {
+                    {% if picture %}
+                        $('#picture_img').attr("src", "{{ picture|thumbnail:"200x200" }}");
+                    {% else %}
+                        $('#picture_img').attr("src", "{% media_url 'images/genericFace.gif' %}");
+                    {% endif %}
+                    $('#dialog-modal').dialog('close');
+                    alert('Ocorreu um erro no envio da sua imagem.\nProvavelmente o arquivo enviado não é uma imagem válida ou é muito grande.');
+                },
+                dataType: "json",
+                timeout:   60000
+            });
+
+            $('#album_picture_field').change(function(){
+                $('#dialog-modal').dialog('open');
+                $('#picture_img').attr("src", "{% media_url 'images/please_wait.gif' %}");
+                $('#album_send_picture_form').submit();
+                return false;
+            });
+
+            $('#add_photo_btn').click(function(event){
+                if (selectedPictureId != null) {
+                    if ($('#picture_id_hidden').val()) {
+                        $('#picture_id_hidden').val($('#picture_id_hidden').val() + ',' + selectedPictureId);
+                    } else {
+                        $('#picture_id_hidden').val(selectedPictureId);
+                        $('#album_content').html('');
+                    }
+
+                    $('#album_content').html($('#album_content').html() + "<img style='padding:2px' src='/image/" + thumbId + "'/>");
+                }
+                $('#picture_img').attr("src", "{% media_url 'images/genericFace.gif' %}");
+                selectedPictureId = null;
+                thumbId = null;
+                
+                $('#add_photo_btn').hide();
+                $('#confirm_btn').show();
+
+                event.stopPropagation();
+                event.preventDefault();
+                return false;
+            });
+
+            $('#my_form_id').submit(function(event) {
+                if (!$('#picture_id_hidden').val()) {
+                    event.stopPropagation();
+                    event.preventDefault();
+                    return false;
+                }
+
+                return true;
+            });
+
+            $('#add_photo_btn').hide();
+            $('#confirm_btn').hide();
+        });
+    </script>
+{% endblock %}
+
+
+{% block content %}
+    {{ block.super }}
+    <div id="dialog-modal" title="Enviando a imagem ...">
+        <h1 style="text-align:center;">Por favor aguarde ...</h1>
+        <span style="position: relative; left: 50%; margin-left: -24px;"><img src="{% media_url 'images/please_wait.gif' %}"/></span>
+    </div>
+    <form id="album_send_picture_form" enctype="multipart/form-data" action="{% url portal.accounts.views.set_picture %}">
+        {% csrf_token %}
+        <input type="file" name="picture" id="album_picture_field" />
+    </form>
+{% endblock %}
+
+{% block form_attributes %}enctype="multipart/form-data"{% endblock %}
+{% block form_buttons %}{% endblock %}
+
+{% block pos_form_fields %}
+    <input type="hidden" name="picture_id" id="picture_id_hidden"/>
+    <div class="content_box">
+        <h2 style="margin-bottom:5px;">Foto</h2>
+        <div class="upload_photo_div" style="padding-left: 5px;">
+            {% if picture %}
+                <img id="picture_img" src="{{ picture|thumbnail:"200x200" }}"/>
+            {% else %}
+                <img id="picture_img" src="{% media_url 'images/genericFace.gif' %}" alt="No Picture"/>
+            {% endif %}
+            <div id="sel_photo_btns_div">
+                <button id="sel_photo_btn">Selecionar Foto</button>
+                <br/><br/>
+                <button id="add_photo_btn">Adicionar ao Álbum</button>
+            </div>
+            <div class="clear"/>
+        </div>
+    </div>
+    <div class="content_box">
+        <h2>Fotos Adicionadas</h2>
+        <div id="album_content" style="width:100%;overflow-x: scroll;">
+            <p>Nenhuma foto foi adicionada ao álbum</p>
+        </div>
+    </div>    
+    <br/>
+    <input id="confirm_btn" type="submit" class="sexybutton sexysimple sexyorange" value="{% trans "Confirm" %}"/>
+{% endblock %}
+
+{% block form_title %}<h2>Dados do Álbum</h2>{% endblock %}
+
+{% block options %}
+    <br/>
+    <div id="image_wrapper_div">
+        <a href="{{ instance.get_absolute_url }}}">
+        {% if instance.picture %}
+            <img id="profile_picture_img" src="{{ instance.picture|thumbnail:"180x180" }}"/>
+        {% else %}
+            <img id="profile_picture_img" src="{% media_url 'images/genericFace.gif' %}" width="180" height="180"/>
+        {% endif %}
+        </a>
+    </div>
+    <br/>
+{% endblock %}

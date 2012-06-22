@@ -1,0 +1,19 @@
+.news_img_div {
+    float: left;
+    width: 300px;
+    overflow: hidden;
+    margin: 5px 0 0 5px;
+}
+
+.news_img_div img {
+    border: 1px solid black;
+}
+
+.news_content_div {
+    float: right;
+    width: 450px;
+}
+
+#news_buttons {
+    float: right;
+}

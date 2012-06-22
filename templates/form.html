@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load media %}
+
+{% block extra-head %}
+    {{ block.super }}
+    {{ form.media }}
+{% endblock %}
+
+{% block css %}
+    {% include_media 'form.css' %}
+{% endblock %}
+
+{% block preload_js %}
+    {% include_media 'form.js' %}
+{% endblock %}
+
+{% block jquery %}
+    {{ block.super }}
+    {% for field in form %}
+        {% if field.field.required %}
+            $('#id_{{ field.name }}').addClass('validate[required]');
+        {% endif %}
+    {% endfor %}
+    $("#my_form_id").validationEngine();
+{% endblock %}
+
+{% block content %}
+    <form id="my_form_id" {% block form_attributes %}{% endblock %} method="{% block form_method %}POST{% endblock %}" action="{% block form_action %}{% endblock %}">
+        {% block form_body %}
+        {% csrf_token %}
+        {% block pre_form_fields %}{% endblock %}
+        <div class="content_box">
+            {% block form_title %}{% endblock %}
+            <table>
+                {{ form.as_table }}
+                {% block form_buttons %}
+                <tr>
+                    <th></th>
+                    <td><input type="submit" class="sexybutton sexysimple sexyorange" value="{% trans "Confirm" %}"/></td>
+                </tr>
+                {% endblock %}
+            </table>
+        </div>
+        {% block pos_form_fields %}{% endblock %}
+        {% endblock %}
+    </form>
+{% endblock %}

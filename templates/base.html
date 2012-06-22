@@ -1,0 +1,208 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN""http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+{% load i18n %}
+{% load images %}
+{% load media %}
+<html xmlns="http://www.w3.org/1999/xhtml" dir="{% if LANGUAGE_BIDI %}rtl{% else %}ltr{% endif %}" xml:lang="{% firstof LANGUAGE_CODE 'en' %}" lang="{% firstof LANGUAGE_CODE 'en' %}">
+  <head>
+    <link REL="SHORTCUT ICON" HREF="{% media_url 'images/favicon.ico' %}" type="image/x-icon">
+    <title>{% block title %}{% trans "Portal Sala de Aula" %}{% endblock %}</title>
+
+    <script type="text/javascript">
+    
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-23680746-1']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+
+
+    {% block css %}
+        {% include_media 'base.css' %}
+    {% endblock %}
+
+    {% block preload_js %}
+        {% include_media 'base.js' %}
+    {% endblock %}
+
+    {% block extra-head %}
+    {% endblock %}
+  </head>
+
+  <body>
+  {% if not request.session.site_interno %}
+    <div id="header">
+        {% block header %}
+        <div id="header_wrapper">
+            <a href="{% url portal.views.index %}" style="border:none;margin:0;padding:0;"><img id="logo_img" src="{% media_url 'images/logo.png'%}" width="140" height="39"/></a>
+            {% block search_box %}
+            <div id="search_box_wrapper">
+                <form action="{% url portal.search.views.search %}" method="GET">
+                    <div id="search_box" class="header_field">
+                        <input type="text" name="q" value="Procurar" class="clearField"/>
+                        <a href="#"><img src="{% media_url 'images/search_btn.png' %}"/></a> 
+                    </div>
+                </form>
+
+                <div id="header_options">
+                    {% if user.is_authenticated %}
+                        <span class="header_option"><a href="{% url portal.views.index %}">Página Inicial</a></span>
+                        <span class="header_option"><a href="{% url portal.accounts.views.profile %}">Perfil</a></span>
+                        <span class="header_option" id="header_option_account">Conta <div id="arrow_icon_div">&nbsp;</div></span>
+                    {% else %}
+                        <form action="{% url django.contrib.auth.views.login %}" method="POST" id="header_login_form">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{% if next %}{{ next|escape }}{% else %}{{ request.get_full_path }}{% endif %}" />
+                            <div class="header_field">
+                                <label>E-mail</label>
+                                <input type="text" name="username"/>
+                            </div>
+                            <div class="header_field">
+                                <label>Senha</label>
+                                <input type="password" name="password"/>
+                            </div>
+                            <button class="sexybutton sexysimple sexysmall sexyorange">Entrar</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endblock %}
+        </div>
+        {% endblock %}
+    </div>
+  {% endif %}
+    <div id="content" {% if request.session.site_interno %}style="margin: 0px; left: 0px; width: 100%; border: 0; padding: 0"{% endif %}>
+        {% if not request.session.site_interno %}
+        <div id="content_left">
+            {% block options %}
+            {% endblock %}
+        </div>
+        {% endif %}
+        <div id="content_right" {% if request.session.site_interno %}style="float: left; width: 740px; border: 0; padding: 0"{% endif %}>
+            {% block content %}
+            {% endblock %}
+        </div>
+        {% if not request.session.site_interno %}
+        <div id="content_right_right">
+            {% block content_right %}
+            {% endblock %}
+        </div>
+        {% endif %}
+
+        <div style="clear:both;">&nbsp;</div>
+        {% if not request.session.site_interno %}
+        <div id="footer">
+            {% block footer %}
+                <hr/>
+                <div id="footer_copy_info">Portal Sala de Aula &copy 2011</div>
+                <div id="footer_links">
+                    <a href="#">Sobre</a>
+                    <a href="#">Anúncios</a>
+                    <a href="#">Privacidade</a>
+                    <a href="#">Termos</a>
+                    <a href="#">Ajuda</a>
+                </div>
+            {% endblock %}
+        </div>
+        {% endif %}
+    </div>
+
+    {% if not request.session.site_interno %}
+    {% if user.is_authenticated %}
+    <div id="account_overlay" style="z-index: 5000">
+        <h1><a style="text-decoration:none;" href="{% url portal.accounts.views.profile %}">
+            {% if user.get_profile.picture %}
+            <img id="profile_picture_thumb_img" src="{{ user.get_profile.picture|thumbnail:"50x50" }}"/>
+            {% else %}
+            <img id="profile_picture_thumb_img" src="{% media_url 'images/genericFace_thumb.gif' %}"/>
+            {% endif %}
+            <span style="position:relative;bottom:20px;">{{ user.get_profile.name }}</span>
+            </a>
+        </h1>
+        <hr/>
+        <a href="#"><div>Editar amigos</div></a>
+        <a href="{% url portal.accounts.views.fill_user_info %}"><div>Configurações da conta</div></a>
+        <a href="#"><div>Configurações de privacidade</div></a>
+        <a href="#"><div>Central de ajuda</div></a>
+        <a href="{% url django.contrib.auth.views.logout %}"><div>Sair</div></a>
+    </div>
+    {% endif %}
+    {% endif %}
+    {% block page_end %}
+    {% endblock %}
+
+    {% block js %}
+        <script type="text/javascript">
+            function showOverlay(event) {
+                $('#header_option_account').css('color', '#000');
+                $('#header_option_account').css('background-color', '#FFF');
+                $('#arrow_icon_div').css('background-position', '0px -4px');
+                $('#account_overlay').show();
+            }
+
+            function hideOverlay(event) {
+                $('#header_option_account').css('color', '#FFF');
+                $('#header_option_account').css('background-color', '#9ecca2');
+                $('#arrow_icon_div').css('background-position', '0px 0px');
+                $('#account_overlay').hide();
+            }
+
+            $(document).bind('ready', function() {
+                $('body').click(function(event){
+                    if (!$('#account_overlay').is(':hidden')) {
+                        hideOverlay(event);
+                    }
+                });
+
+                $('.clearField').clearField({
+                    blurClass: 'clearFieldBlurred',
+                    activeClass: 'clearFieldActive'
+                });
+
+                if ($('#search_box')) {
+                    $('#search_box a').click(function(event) {
+                        $('#search_box').parent('form').submit();
+                        event.preventDefault();
+                        return false;
+                    });
+                }
+
+                {% if user.is_authenticated %}
+                var first_time = true;
+
+
+                $('#header_option_account').click(function(event){
+                    var el      = $('#header_option_account')
+                    var this_el = $('#account_overlay');
+
+                    if (this_el.is(':hidden')) {
+                        if (first_time) {
+                            //Position the overlay on the right place
+                            var pos   = el.offset();
+                            var delta = this_el.outerWidth() - el.outerWidth() - 1;
+                            this_el.offset({left: pos.left - delta, top: pos.top + el.height()});
+                            first_time = false;
+                        }
+                        showOverlay(event);
+                    } else {
+                        hideOverlay(event);
+                    }
+
+                    event.stopPropagation();
+                    event.prevendDefault();
+                    return false;
+                });
+                {% endif %}
+
+                $("#content_right input[type='submit'], #content_right button").addClass('sexybutton sexysimple sexyorange');
+                {% block jquery %}{% endblock %}
+            });
+        </script>
+    {% endblock %}
+  </body>
+</html>

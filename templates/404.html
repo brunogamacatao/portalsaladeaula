@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block extra-head %}
+    <meta http-equiv="REFRESH" content="0;url={% url portal.views.index %}">
+{% endblock %}
+{% block title %}Página não encontrada{% endblock %}
+
+{% block content %}
+    <br/><br/>
+    <h1>Desculpe-nos,</h1>
+    <p>Não conseguimos encontrar a página requisitada.</p>
+    <p>Por favor, verifique o endereço que você tentou acessar e tente novamente.</p>
+    <br/>
+    <p>Muito Obrigado</p>
+{% endblock %}

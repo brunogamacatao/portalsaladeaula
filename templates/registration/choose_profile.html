@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load images %}
+{% load media %}
+
+{% block extra-head %}
+    {{ block.super }}
+    {{ form.media }}
+{% endblock %}
+
+{% block search_box %}{% endblock %}
+
+{% block options %}
+    {% if user.get_profile.picture %}
+        <img id="profile_picture_img" src="{{ user.get_profile.picture|thumbnail:"180x180" }}"/>
+    {% else %}
+        <img id="profile_picture_img" src="{% media_url 'images/genericFace.gif' %}" width="180" height="180"/>
+    {% endif %}
+    <h1>{{ user.get_profile.name }}</h1>
+{% endblock %}
+
+{% block content %}
+    <div id="div_buttons" style="font-size:20px;margin:50px 0px 50px 265px;">
+        Você é:<br/>
+        <button id="student_btn" class="sexyxl">Aluno</button> ou <button id="teacher_btn" class="sexyxl">Professor</button> ?
+    </div>
+    <div id="div_student" class="content_box">
+        <h2>Mais alguns dados</h2>
+        <p>Formulário de cadastro do aluno</p>
+    </div>
+    <div id="div_teacher" class="content_box">
+        <h2>Que disciplinas você leciona ?</h2>
+        <p>Formulário de cadastro do professor</p>
+    </div>
+{% endblock %}
+
+{% block jquery %}
+    {{ block.super }}
+    $('#div_student').hide();
+    $('#div_teacher').hide();
+
+    $('#student_btn').click(function() {
+        $('#div_buttons').hide();
+        $('#div_student').show();
+    });
+    $('#teacher_btn').click(function() {
+        $('#div_buttons').hide();
+        $('#div_teacher').show();
+    });
+{% endblock %}

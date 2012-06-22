@@ -1,0 +1,24 @@
+#send_msg_dlg .message_row {
+    vertical-align: top;
+}
+
+#send_msg_dlg td {
+    width: 350px;
+}
+
+#send_msg_dlg input, #send_msg_dlg textarea {
+    width: 100%;
+}
+
+#send_msg_dlg textarea {
+    height: 142px;
+}
+
+#send_msg_dlg .button_row {
+    text-align: right;
+}
+
+#send_msg_dlg th {
+    vertical-align: top;
+    padding: 4px 0 0 0;
+}

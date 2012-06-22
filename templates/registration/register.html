@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load images %}
+{% load media %}
+
+{% block preload_js %}
+    {% include_media 'registration_register.js' %}
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('#dialog-modal').dialog({
+                height: 140,
+                modal: true,
+                autoOpen: false
+            });
+
+            $('#send_picture_form').ajaxForm({
+                success: function(responseText, statusText, xhr, $form) {
+                    var result = eval(responseText)['result'];
+                    $('#picture_id_hidden').val(result['picture_id']);
+                    $('#picture_img').attr("src", "/image/" + result['thumb_id'] + "/");
+                    $('#dialog-modal').dialog('close');
+                },
+                dataType: "json",
+                timeout:   60000
+            });
+
+            $('#select_photo_btn').click(function(event) {
+                $('#picture_field').click();
+                event.preventDefault();
+            });
+
+            $('#picture_field').change(function(){
+                $('#dialog-modal').dialog('open');
+                $('#picture_img').attr("src", "{% media_url 'images/please_wait.gif' %}");
+                $('#send_picture_form').submit();
+            });
+        });
+    </script>    
+{% endblock %}
+
+{% block extra-head %}
+    {{ block.super }}
+    {{ form.media }}
+{% endblock %}
+
+{% block search_box %}{% endblock %}
+
+{% block options %}
+    <img id="profile_picture_img" src="{% media_url 'images/logo_big.png' %}" width="180" height="180"/>
+    <h1 align="center" style="margin-top: 10px;">Portal Sala de Aula</h1>
+{% endblock %}
+
+{% block content %}
+    <div id="dialog-modal" title="Enviando a imagem ...">
+	    <h1 style="text-align:center;">Por favor aguarde ...</h1>
+        <span style="position: relative; left: 50%; margin-left: -24px;"><img src="{% media_url 'images/please_wait.gif' %}"/></span>
+    </div>
+
+    {% if form.errors %}
+    <p class="error">{% trans "Please correct the errors below" %}</p>
+    {% endif %}
+
+    <div class="content_box">
+        <h2>Sua foto</h2>
+        <br/>
+        <div class="upload_photo_div">
+            {% if picture %}
+                <img id="picture_img" src="{{ picture|thumbnail:"200x200" }}"/>
+            {% else %}
+                <img id="picture_img" src="{% media_url 'images/genericFace.gif' %}" alt="No Picture"/>
+            {% endif %}
+            <button id="select_photo_btn">Selecionar Foto</button>
+            <div class="clear"/>
+        </div>
+    </div>
+    <br/>
+    <div class="content_box">
+        <h2>Fale-nos um pouco de você</h2>
+        <form id="user_info_form" action="" method="post">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <input type="hidden" name="picture_id" id="picture_id_hidden"/>
+            <table>
+                {% if form.name.errors %}
+                <tr>
+                    <th></th>
+                    <td>{{ form.name.errors }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <th>{{ form.name.label_tag }}</th>
+                    <td>{{ form.name }}</td>
+                </tr>
+                {% if form.city.errors %}
+                <tr>
+                    <th></th>
+                    <td>{{ form.city.errors }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <th>{{ form.city.label_tag }}</th>
+                    <td>{{ form.city }}</td>
+                </tr>
+                {% if form.province.errors %}
+                <tr>
+                    <th></th>
+                    <td>{{ form.province.errors }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <th>{{ form.province.label_tag }}</th>
+                    <td>{{ form.province }}</td>
+                </tr>
+                <tr>
+                    <th></th>
+                    <td><input type="submit" value="{% trans "Done" %}"/></td>
+                </tr>
+            </table>
+        </form>
+    </div>
+
+    <form style="position:fixed;top:-1000px" id="send_picture_form" enctype="multipart/form-data" action="{% url portal.accounts.views.set_picture %}">
+        {% csrf_token %}
+        <input type="file" name="picture" id="picture_field" />
+        <input type="submit"/>
+    </form>
+{% endblock %}

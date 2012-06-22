@@ -1,0 +1,36 @@
+#content_right h1 {
+    margin: 5px;
+    font-size: 16px;
+}
+
+#content_right ul li {
+    font-size: 12px;
+}
+
+#content_right ul li:hover {
+    background-color: #EEE;
+}
+
+#content_right ul img {
+    float: left;
+    margin: 10px 0 10px 5px;
+}
+
+#content_right ul .search_item {
+    position: absolute;
+    margin: 15px 0px 10px 60px;
+}
+
+#content_right .separator {
+    width: auto;
+    height: 1px;
+    border: none;
+    border-top: 1px solid black;
+    margin: 0 5px 0 5px;
+    display: block;
+    clear: both;
+}
+
+#content_right ul .separator {
+    border-top: 1px solid #BBB;
+}

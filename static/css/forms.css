@@ -1,0 +1,65 @@
+#content_right input[type='text'], #content_right input[type='password'],  #content_right select {
+    width: 300px;
+}
+
+#header_login_form button {
+    margin: -3px 5px 0 0;
+}
+
+#send_picture_form {
+    position:absolute;
+    left:220px;
+    float:left;
+    top:86px;
+    width:120px;
+    overflow:hidden;
+}
+
+#send_picture_form #picture_field {
+    z-index:2000;
+    border:1px solid black;
+    width:120px;
+    height: 25px;
+    -moz-opacity:0;
+    filter:alpha(opacity: 0);
+    opacity: 0;
+}
+
+#institution_picture_field {
+    z-index:2000;
+    position:absolute;
+    border:solid 1px black;
+    float:left;
+    top:105px;
+    margin-left:210px;
+    width:115px;
+    height:26px;    
+    -moz-opacity:0;
+    filter:alpha(opacity: 0);
+    opacity: 0;
+}
+
+#album_picture_field {
+    z-index:2000;
+    position:absolute;
+    border:solid 1px black;
+    float:left;
+    top:141px;
+    margin-left:211px;
+    width:140px;
+    height:26px;
+    -moz-opacity:0;
+    filter:alpha(opacity: 0);
+    opacity: 0;
+}
+
+#sel_photo_btns_div {
+    float: left;
+    margin-left: 1px;
+    margin-top: 40px;
+}
+
+#sel_photo_btns_div button {
+    margin: 5px;
+    width: 140px;
+}

@@ -1,0 +1,59 @@
+{% load i18n %}
+{% load images %}
+{% load media %}
+
+{% include_media 'jquery.hoverbox.min.js' %}
+
+<style type="text/css">
+    #tooltip {
+        font-size:12px;
+        padding: 5px 10px;
+        background: #cad7e0;
+        border: 1px solid #b2bdc3;
+        opacity: 0.90;
+    }
+</style>
+
+<h2>
+    {% trans "Disciplines" %}
+    ({% blocktrans count discipline_set.count as counter %}one discipline{% plural %}{{ counter }} disciplines{% endblocktrans %})
+</h2>
+<ul class="item_list">
+    {% for discipline in disciplines %}
+        <li class="discipline_icon" title="{{ discipline.name }}">
+            <a href="{% url portal.disciplines.views.detail course.institution.slug course.slug discipline.slug %}">
+                {% if discipline.picture %}
+                <img src="{{ discipline.picture|thumbnail:"50x50" }}"/>
+                {% else %}
+                <img src="{% media_url 'images/books.png' %}" width="50px" height="50px"/>
+                {% endif %}
+            </a>
+        </li>
+    {% endfor %}
+</ul>
+{% if has_more %}
+    <button style="right: 0px;" id="more_disciplines_btn" class="sexybutton sexysimple sexyorange">{% trans "Next" %}</button>
+    <script type="text/javascript">
+        $('#more_disciplines_btn').click(function(event){
+            event.stopImmediatePropagation();
+            $('#discipline_list').html('<h2><img src="{% media_url 'images/please_wait.gif' %}"/> {% trans "Loading the disciplines ..." %}</h2>');
+            $('#discipline_list').load('{% url portal.courses.views.get_disciplines course.id first nresults %}');
+            return false;
+        });
+    </script>
+{% endif %}
+{% if has_prev %}
+    <button style="right:5px;" id="prev_disciplines_btn" class="sexybutton sexysimple sexyorange">{% trans "Previous" %}</button>
+    <script type="text/javascript">
+        $('#prev_disciplines_btn').click(function(event){
+            event.stopImmediatePropagation();
+            $('#discipline_list').html('<h2><img src="{% media_url 'images/please_wait.gif' %}"/> {% trans "Loading the disciplines ..." %}</h2>');
+            $('#discipline_list').load('{% url portal.courses.views.get_disciplines course.id prev nresults %}');
+            return false;
+        });
+
+    </script>
+{% endif %}
+<script type="text/javascript">
+    $('.discipline_icon').hoverbox();
+</script>
